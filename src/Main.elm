@@ -2,20 +2,62 @@ module Main exposing(..)
 
 import Html.App as Html
 import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Debug exposing (log)
 
+type alias Grid =
+    { rows: List Row
+    }
+
+type alias Row =
+    { cells: List Cell
+    }
+
+type alias Cell =
+    { state: CellState
+    , bomb: Bool
+    }
+
+type CellState = Hidden
+    | Cleared
+    | Flagged
+
+type State = NewGame
+    | Playing
+    | Won
+    | Lost
+
 type alias Model = 
-    { test: String
+    { grid: Grid
+    , time: Int
+    , state: State
     }
 
 type Msg =
     NoOp
 
+createCell: Int -> Int -> Cell
+createCell rowIndex cellIndex =
+    Cell Hidden False
+
+createRow: Int -> Row
+createRow index =
+    [0..9]
+        |> List.map (createCell index)
+        |> Row
+
+createGrid: Grid
+createGrid =
+    [0..9]
+        |> List.map createRow
+        |> Grid
+
+
 initialModel: Model
 initialModel =
-    Model ""
+    Model createGrid 0 NewGame
 
--- START APP
 init : ( Model, Cmd Msg )
 init =
   ( initialModel, Cmd.none )
@@ -24,11 +66,35 @@ update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     (model, Cmd.none)
 
+drawCell: Cell -> Html Msg
+drawCell cell =
+    div
+        [ class "cell" ]
+        [ text "Cell" ]
+
+drawRow: Row -> Html Msg
+drawRow row =
+    div
+        [ class "row" ]
+        (row.cells |> List.map drawCell)
+
 view: Model -> Html Msg
 view model =
-    div 
+    div
         []
-        [ text "Nice from minesweeper, does this work? Probably not" ]
+        [ div
+            [ class "instructions"]
+            [ text "It's Minesweeper - you probably know what to do ..." ]
+        , div
+            [ class "game-area" ]
+            [ div
+                [ class "header" ]
+                [ text "we'll put the stats and the clock in here" ]
+            , div
+                [ class "grid" ]
+                (model.grid.rows |> List.map drawRow)
+            ]
+        ]
 
 main =
     Html.program
