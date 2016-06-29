@@ -5,6 +5,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Debug exposing (log)
+import Container
+import One
 
 type alias Grid =
     { rows: List Row
@@ -32,10 +34,12 @@ type alias Model =
     { grid: Grid
     , time: Int
     , state: State
+    , container: Container.Model One.Model
     }
 
 type Msg =
     NoOp
+    | ContainerMsg (Container.Msg One.Msg)
 
 createCell: Int -> Int -> Cell
 createCell rowIndex cellIndex =
@@ -53,10 +57,9 @@ createGrid =
         |> List.map createRow
         |> Grid
 
-
 initialModel: Model
 initialModel =
-    Model createGrid 0 NewGame
+    Model createGrid 0 NewGame (Container.initialModel One.initialModel)
 
 init : ( Model, Cmd Msg )
 init =
@@ -94,6 +97,7 @@ view model =
                 [ class "grid" ]
                 (model.grid.rows |> List.map drawRow)
             ]
+        , Html.map ContainerMsg (Container.view model.container)
         ]
 
 main =
