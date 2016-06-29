@@ -67,7 +67,15 @@ init =
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-    (model, Cmd.none)
+    case msg of
+        ContainerMsg sub ->
+            let
+                (updated, fx) =
+                    Container.update sub model.container
+            in
+                ( { model | container = updated }, Cmd.none )
+        NoOp ->
+            (model, Cmd.none)
 
 drawCell: Cell -> Html Msg
 drawCell cell =

@@ -7219,6 +7219,32 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
+var _user$project$Container$update = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		if (_p0.ctor === 'Click') {
+			return {
+				ctor: '_Tuple2',
+				_0: _elm_lang$core$Native_Utils.update(
+					model,
+					{num: model.num + 1}),
+				_1: _elm_lang$core$Platform_Cmd$none
+			};
+		} else {
+			return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+		}
+	});
+var _user$project$Container$Model = F2(
+	function (a, b) {
+		return {content: a, num: b};
+	});
+var _user$project$Container$initialModel = function (init) {
+	return A2(_user$project$Container$Model, init, 0);
+};
+var _user$project$Container$ContentMsg = function (a) {
+	return {ctor: 'ContentMsg', _0: a};
+};
+var _user$project$Container$Click = {ctor: 'Click'};
 var _user$project$Container$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -7229,25 +7255,23 @@ var _user$project$Container$view = function (model) {
 				A2(
 				_elm_lang$html$Html$button,
 				_elm_lang$core$Native_List.fromArray(
-					[]),
+					[
+						_elm_lang$html$Html_Events$onClick(_user$project$Container$Click)
+					]),
 				_elm_lang$core$Native_List.fromArray(
 					[
 						_elm_lang$html$Html$text('Container')
+					])),
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(
+						_elm_lang$core$Basics$toString(model.num))
 					]))
 			]));
-};
-var _user$project$Container$update = F2(
-	function (msg, model) {
-		return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-	});
-var _user$project$Container$Model = function (a) {
-	return {content: a};
-};
-var _user$project$Container$initialModel = function (init) {
-	return _user$project$Container$Model(init);
-};
-var _user$project$Container$ContentMsg = function (a) {
-	return {ctor: 'ContentMsg', _0: a};
 };
 
 var Elm = {};
