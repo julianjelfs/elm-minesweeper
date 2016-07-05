@@ -105,7 +105,7 @@ view model =
                 [ class "grid" ]
                 (model.grid.rows |> List.map drawRow)
             ]
-        , Html.map ContainerMsg (Container.view model.container)
+        , Html.map ContainerMsg (Container.view model.container One.view)
         ]
 
 main =

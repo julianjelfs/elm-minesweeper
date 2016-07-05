@@ -5,20 +5,20 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 
-type Msg a =
+type Msg msg =
     Click
-    | ContentMsg a
+    | ContentMsg msg
 
-type alias Model b =
-    { content : b
+type alias Model m =
+    { content : m
     , num : Int
     }
 
-initialModel : b -> Model b
+initialModel : m -> Model m
 initialModel init =
     Model init 0
 
-update : Msg a -> Model b -> (Model b, Cmd a)
+update : Msg msg -> Model m -> (Model m, Cmd msg)
 update msg model =
     case msg of
         Click ->
@@ -27,13 +27,16 @@ update msg model =
             (model, Cmd.none)
 
 
-view: Model b -> Html (Msg a)
-view model =
+view: Model m -> (m -> Html (Msg msg)) -> Html (Msg mgs)
+view model content =
     div
         []
         [ button
             [ onClick Click ]
             [ text "Container" ]
+        , div
+            []
+            [ content model.content ]
         , div
             []
             [ text (toString model.num) ]
