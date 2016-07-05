@@ -5,6 +5,9 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Debug exposing (log)
+import Time
+import Task
+import Random
 
 type alias Grid =
     { rows: List Row
@@ -34,22 +37,31 @@ type alias Model =
     , state: State
     }
 
+type alias Coord = (Int, Int)
+
 type Msg =
-    NoOp
+    Dummy ()
+        | Positions (List Coord)
+        | NoOp
+
+dimensions = 
+    (10, 10)
 
 createCell: Int -> Int -> Cell
 createCell rowIndex cellIndex =
     Cell Hidden False
 
+dec x = x - 1
+
 createRow: Int -> Row
 createRow index =
-    [0..9]
+    [0..(dimensions |> fst |> dec)]
         |> List.map (createCell index)
         |> Row
 
 createGrid: Grid
 createGrid =
-    [0..9]
+    [0..(dimensions |> snd |> dec)]
         |> List.map createRow
         |> Grid
 
@@ -60,11 +72,44 @@ initialModel =
 
 init : ( Model, Cmd Msg )
 init =
-  ( initialModel, Cmd.none )
+  ( initialModel, randomPositions )
+
+
+positions n t =
+    let
+        s = Random.initialSeed (round t)
+    in
+        [0..n]
+            |> List.foldl
+                (\i (s, l) ->
+                    let
+                        (r, s1) = Random.step (Random.int 0 9) s
+                        (c, s2) = Random.step (Random.int 0 9) s1
+                    in
+                        (s2, (r,c)::l))
+                (s, [])
+            |> snd
+            |> Task.succeed
+
+randomPositions =
+    let
+        pos = Time.now `Task.andThen` (positions 10)
+    in
+        Task.perform Dummy Positions pos
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-    (model, Cmd.none)
+    case msg of
+        Dummy () ->
+            (model, Cmd.none)
+        Positions pos ->
+            let
+                x = log "Pos: " pos
+            in
+                (model, Cmd.none)
+        NoOp ->
+            (model, Cmd.none)
+
 
 drawCell: Cell -> Html Msg
 drawCell cell =
