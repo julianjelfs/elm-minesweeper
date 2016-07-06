@@ -72,30 +72,27 @@ initialModel =
 
 init : ( Model, Cmd Msg )
 init =
-  ( initialModel, randomPositions )
+  ( initialModel, (randomPositions 10) )
 
 
-positions n t =
-    let
-        s = Random.initialSeed (round t)
-    in
-        [0..n]
-            |> List.foldl
-                (\i (s, l) ->
-                    let
-                        (r, s1) = Random.step (Random.int 0 9) s
-                        (c, s2) = Random.step (Random.int 0 9) s1
-                    in
-                        (s2, (r,c)::l))
-                (s, [])
-            |> snd
-            |> Task.succeed
-
-randomPositions =
-    let
-        pos = Time.now `Task.andThen` (positions 10)
-    in
-        Task.perform Dummy Positions pos
+randomPositions n =
+    Time.now `Task.andThen`
+    (\t ->
+        let
+            s = Random.initialSeed (round t)
+        in
+            [0..n]
+                |> List.foldl
+                    (\i (s, l) ->
+                        let
+                            (r, s1) = Random.step (Random.int 0 9) s
+                            (c, s2) = Random.step (Random.int 0 9) s1
+                        in
+                            (s2, (r,c)::l))
+                    (s, [])
+                |> snd
+                |> Task.succeed)
+            |> Task.perform Dummy Positions
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
