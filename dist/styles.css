@@ -83,6 +83,7 @@ body {
     background-image: url(flag.png);
     background-repeat:no-repeat;
     background-position: center center;
+    background-color: #fefefe;
 }
 
 .cell:last-child {

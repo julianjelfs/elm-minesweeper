@@ -10,6 +10,10 @@ import Task
 import Random
 import AnimationFrame exposing (diffs)
 import String exposing (padLeft)
+import Keyboard
+
+ctrl = 17
+initialBombs = 15
 
 type alias Grid =
     { rows: List Row
@@ -39,6 +43,8 @@ type alias Model =
     { grid: Grid
     , duration: Time.Time
     , state: State
+    , ctrl: Bool
+    , bombs: List Coord
     , numberOfBombs: Int
     }
 
@@ -47,9 +53,11 @@ type alias Coord = (Int, Int)
 type Msg =
     Dummy ()
     | Positions (List Coord)
-    | StartGame Int
+    | StartGame
     | Tick Time.Time
     | ClickedCell Cell
+    | KeyDown Keyboard.KeyCode
+    | KeyUp Keyboard.KeyCode
 
 dimensions = 
     (10, 10)
@@ -74,7 +82,7 @@ createGrid =
 
 initialModel: Model
 initialModel =
-    Model createGrid 0 NewGame 15
+    Model createGrid 0 NewGame False [] initialBombs
 
 init : ( Model, Cmd Msg )
 init =
@@ -118,24 +126,47 @@ replaceCell cell grid =
                                     else
                                         c ) ) } ) ) }
 
-flagCell grid cell =
-    grid |> (replaceCell { cell | state = Flagged })
+flagCell model cell =
+    let
+        changeState = (\b s ->
+            { model | numberOfBombs = b
+            , grid = model.grid |> (replaceCell { cell | state = s }) })
+    in
+        case cell.state of
+            Flagged ->
+                changeState (model.numberOfBombs + 1) Hidden
+            Hidden ->
+                changeState (model.numberOfBombs - 1) Flagged
+            _ ->
+                model
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     let
-        startGame = (\m n ->
-            ( { m | state = Playing, grid = createGrid }, (randomPositions n) ))
+        startGame = (\m ->
+            ( { initialModel | state = Playing, ctrl = m.ctrl }, (randomPositions initialBombs) ))
+
+        ctrlClick = (\m k b ->
+            case k of
+                ctrl ->
+                    ( { m | ctrl = b }, Cmd.none ))
+
+        handleClick = (\m c ->
+            case m.ctrl of
+                True ->
+                    (flagCell m c)
+                False ->
+                    m )
     in
         case msg of
             Dummy () ->
                 (model, Cmd.none)
 
             Positions pos ->
-                (model, Cmd.none)
+                ({ model | bombs = pos }, Cmd.none)
 
-            StartGame n ->
-                startGame model n
+            StartGame ->
+                startGame model
 
             Tick t ->
                 ( { model | duration = model.duration + t }, Cmd.none )
@@ -143,13 +174,19 @@ update msg model =
             ClickedCell cell ->
                 case model.state of
                     Playing ->
-                        ( { model | grid = (flagCell model.grid cell) }, Cmd.none )
+                        ( (handleClick model cell), Cmd.none )
                     _ ->
                         let
                             (m, fx) =
-                                startGame model model.numberOfBombs
+                                startGame model
                         in
-                            ( { m | grid = (flagCell m.grid cell) }, fx )
+                            ( (handleClick m cell), fx )
+
+            KeyDown k ->
+                ctrlClick model k True
+
+            KeyUp k ->
+                ctrlClick model k False
 
 
 --VIEW STUFF
@@ -182,7 +219,7 @@ startButton model =
     in
     button
         [ class cls
-        , onClick (StartGame model.numberOfBombs) ]
+        , onClick StartGame ]
         []
 
 padLeftNum n =
@@ -232,6 +269,9 @@ timerSub model =
             diffs Tick
         _ -> Sub.none
 
+keyBoard =
+    Sub.batch [Keyboard.downs KeyDown, Keyboard.ups KeyUp]
+
 --WIRING
 
 main =
@@ -239,5 +279,5 @@ main =
         { init = init
         , update = update
         , view = view
-        , subscriptions = timerSub
+        , subscriptions = (\m -> Sub.batch [timerSub m, keyBoard])
         }
