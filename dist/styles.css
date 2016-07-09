@@ -28,6 +28,39 @@ body {
     padding:10px;
     text-align: center;
     background:#fff;
+    font-weight:bold;
+}
+
+.start-button {
+    background:none;
+    color:inherit;
+    cursor:pointer;
+    background-repeat: no-repeat;
+    background-position: center center;
+    width:55px;
+    height:55px;
+}
+
+.start-button.happy {
+    background-image: url(happy.png);
+}
+
+.start-button.sad {
+    background-image: url(sad.png);
+}
+
+.bomb-count, .timer {
+    background:#000;
+    color:#ff0000;
+    font-weight: bold;
+    float:left;
+    padding:10px;
+    font-size:1.8em;
+    width:80px;
+}
+
+.timer {
+    float:right;
 }
 
 .grid {
@@ -43,6 +76,13 @@ body {
     padding-top: 15px;
     border-right: 1px solid #ccc;
     border-top: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.cell.flagged {
+    background-image: url(flag.png);
+    background-repeat:no-repeat;
+    background-position: center center;
 }
 
 .cell:last-child {
