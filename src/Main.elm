@@ -223,7 +223,7 @@ startButton model =
         []
 
 padLeftNum n =
-    n |> toString |> padLeft 3 '0'
+    toString >> (padLeft 3 '0')
 
 bombCount model =
     span
