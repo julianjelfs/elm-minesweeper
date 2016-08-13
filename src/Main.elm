@@ -11,6 +11,7 @@ import Random
 import AnimationFrame exposing (diffs)
 import String exposing (padLeft)
 import Keyboard
+import Set
 
 ctrl = 17
 initialBombs = 15
@@ -44,7 +45,7 @@ type alias Model =
     , duration: Time.Time
     , state: State
     , ctrl: Bool
-    , bombs: List Coord
+    , bombs: Set.Set Coord
     , numberOfBombs: Int
     }
 
@@ -52,7 +53,7 @@ type alias Coord = (Int, Int)
 
 type Msg =
     Dummy ()
-    | Positions (List Coord)
+    | Positions (Set.Set Coord)
     | StartGame
     | Tick Time.Time
     | ClickedCell Cell
@@ -82,12 +83,14 @@ createGrid =
 
 initialModel: Model
 initialModel =
-    Model createGrid 0 NewGame False [] initialBombs
+    Model createGrid 0 NewGame False Set.empty initialBombs
 
 init : ( Model, Cmd Msg )
 init =
   ( initialModel, Cmd.none )
 
+--the problem with this is that we are using a set so duplicates will be ignored so really we need to
+--generating numbers until we get n, rather than just looping n times
 randomPositions n =
     Time.now `Task.andThen`
     (\t ->
@@ -96,13 +99,13 @@ randomPositions n =
         in
             [0..n]
                 |> List.foldl
-                    (\i (s, l) ->
+                    (\i (s, st) ->
                         let
                             (r, s1) = Random.step (Random.int 0 9) s
                             (c, s2) = Random.step (Random.int 0 9) s1
                         in
-                            (s2, (r,c)::l))
-                    (s, [])
+                            (s2, (Set.insert (r,c) st)))
+                    (s, Set.empty)
                 |> snd
                 |> Task.succeed)
             |> Task.perform Dummy Positions
@@ -125,6 +128,29 @@ replaceCell cell grid =
                                         cell
                                     else
                                         c ) ) } ) ) }
+
+findNearbyBombs bombs cell =
+    0
+
+revealCell model cell =
+    let
+        bombs = model.bombs
+        cellContainsBomb = Set.member (cell.rowIndex, cell.cellIndex) bombs
+    in
+        case cellContainsBomb of
+            True ->
+                { model | state = Lost }
+            False ->
+                let
+                    nearbyBombs = findNearbyBombs bombs cell
+                in
+                    case nearbyBombs of
+                        0 ->
+                            -- if there are 0, show that cell and reveal all surrounding cells
+                            model
+                        _ ->
+                            -- if there are > 0, show that cell
+                            model
 
 flagCell model cell =
     let
@@ -156,7 +182,7 @@ update msg model =
                 True ->
                     (flagCell m c)
                 False ->
-                    m )
+                    (revealCell m c) )
     in
         case msg of
             Dummy () ->
