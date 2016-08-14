@@ -86,6 +86,16 @@ body {
     background-color: #fefefe;
 }
 
+.cell.cleared {
+    background-color: #fff;
+}
+
+.cell.bomb {
+    background-image: url(bomb.png);
+    background-repeat:no-repeat;
+    background-position: center center;
+}
+
 .cell:last-child {
     border-right: none;
 }

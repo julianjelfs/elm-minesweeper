@@ -147,18 +147,23 @@ revealCell model cell =
     in
         case containsBomb of
             True ->
-                { model | state = Lost }
+                { model | state = Lost
+                , grid = model.grid
+                    |> (replaceCell { cell | state = Cleared }) }
             False ->
                 let
                     nearbyBombs = findNearbyBombs model cell
+                    updatedModel =
+                        { model | grid = model.grid
+                                |> (replaceCell { cell | state = Cleared }) }
                 in
                     case nearbyBombs of
                         0 ->
                             -- if there are 0, show that cell and reveal all surrounding cells
-                            model
+                            updatedModel
                         _ ->
                             -- if there are > 0, show that cell
-                            model
+                            updatedModel
 
 flagCell model cell =
     let
@@ -224,25 +229,26 @@ update msg model =
 
 
 --VIEW STUFF
-drawCell: Cell -> Html Msg
-drawCell cell =
+drawCell bombs cell =
     let
         cls =
             case cell.state of
                 Hidden -> "cell hidden"
                 Flagged -> "cell flagged"
-                Cleared -> "cell cleared"
+                Cleared ->
+                    case (cellContainsBomb bombs cell) of
+                        True -> "cell cleared bomb"
+                        False -> "cell cleared"
     in
         div
             [ class cls
             , onClick (ClickedCell cell) ]
             [ ]
 
-drawRow: Row -> Html Msg
-drawRow row =
+drawRow bombs row =
     div
         [ class "row" ]
-        (row.cells |> List.map drawCell)
+        (row.cells |> List.map (drawCell bombs))
 
 startButton model =
     let
@@ -293,7 +299,7 @@ view model =
             [ header model
             , div
                 [ class "grid" ]
-                (model.grid.rows |> List.map drawRow)
+                (model.grid.rows |> List.map (drawRow model.bombs))
             ]
         ]
 
