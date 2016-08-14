@@ -129,20 +129,28 @@ replaceCell cell grid =
                                     else
                                         c ) ) } ) ) }
 
-findNearbyBombs bombs cell =
-    0
+cellContainsBomb bombs cell =
+    Set.member (cell.rowIndex, cell.cellIndex) bombs
+
+nearbyCells grid cell =
+    []
+
+findNearbyBombs model cell =
+    (nearbyCells model.grid cell)
+        |> List.filter (cellContainsBomb model.bombs)
+        |> List.length
 
 revealCell model cell =
     let
         bombs = model.bombs
-        cellContainsBomb = Set.member (cell.rowIndex, cell.cellIndex) bombs
+        containsBomb = cellContainsBomb bombs cell
     in
-        case cellContainsBomb of
+        case containsBomb of
             True ->
                 { model | state = Lost }
             False ->
                 let
-                    nearbyBombs = findNearbyBombs bombs cell
+                    nearbyBombs = findNearbyBombs model cell
                 in
                     case nearbyBombs of
                         0 ->
@@ -248,7 +256,7 @@ startButton model =
         , onClick StartGame ]
         []
 
-padLeftNum n =
+padLeftNum =
     toString >> (padLeft 3 '0')
 
 bombCount model =
