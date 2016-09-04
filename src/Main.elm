@@ -12,23 +12,17 @@ import AnimationFrame exposing (diffs)
 import String exposing (padLeft)
 import Keyboard
 import Set
+import Dict
 
 ctrl = 17
 initialBombs = 15
-
-type alias Grid =
-    { rows: List Row
-    }
-
-type alias Row =
-    { rowIndex: Int
-    , cells: List Cell
-    }
 
 type alias Cell =
     { rowIndex: Int
     , cellIndex: Int
     , state: CellState
+    , bomb: Bool
+    , nearbyBombs: Int
     }
 
 type CellState = Hidden
@@ -41,11 +35,10 @@ type State = NewGame
     | Lost
 
 type alias Model = 
-    { grid: Grid
+    { grid: Dict.Dict Coord Cell
     , duration: Time.Time
     , state: State
     , ctrl: Bool
-    , bombs: Set.Set Coord
     , numberOfBombs: Int
     }
 
@@ -63,107 +56,95 @@ type Msg =
 dimensions = 
     (10, 10)
 
-createCell: Int -> Int -> Cell
-createCell rowIndex cellIndex =
-    Cell rowIndex cellIndex Hidden
+createCell (rowIndex, cellIndex) =
+    Cell rowIndex cellIndex Hidden False 0
 
 dec x = x - 1
 
-createRow: Int -> Row
-createRow index =
-    [0..(dimensions |> fst |> dec)]
-        |> List.map (createCell index)
-        |> Row index
-
-createGrid: Grid
 createGrid =
-    [0..(dimensions |> snd |> dec)]
-        |> List.map createRow
-        |> Grid
+    let
+        row = (\i -> [0..9] |> List.map (\n -> (i, n)))
+        keys = List.concatMap row [0..9]
+    in
+        keys
+            |> List.foldl (\t d -> Dict.insert t (createCell t) d) Dict.empty
 
 initialModel: Model
 initialModel =
-    Model createGrid 0 NewGame False Set.empty initialBombs
+    Model createGrid 0 NewGame False initialBombs
 
 init : ( Model, Cmd Msg )
 init =
   ( initialModel, Cmd.none )
 
---the problem with this is that we are using a set so duplicates will be ignored so really we need to
---generating numbers until we get n, rather than just looping n times
+
+rndPos : Int -> Set.Set Coord -> Random.Seed -> Set.Set Coord
+rndPos n pos seed =
+    let
+        num = Set.size pos
+    in
+        if num == n then
+            pos
+        else
+            let
+                (r, seed2) = Random.step (Random.int 0 9) seed
+                (c, seed3) = Random.step (Random.int 0 9) seed2
+            in
+                rndPos n (Set.insert (r, c) pos) seed3
+
+
 randomPositions n =
     Time.now `Task.andThen`
-    (\t ->
-        let
-            s = Random.initialSeed (round t)
-        in
-            [0..n]
-                |> List.foldl
-                    (\i (s, st) ->
-                        let
-                            (r, s1) = Random.step (Random.int 0 9) s
-                            (c, s2) = Random.step (Random.int 0 9) s1
-                        in
-                            (s2, (Set.insert (r,c) st)))
-                    (s, Set.empty)
-                |> snd
-                |> Task.succeed)
-            |> Task.perform Dummy Positions
+        (\t ->
+            round t
+                |> Random.initialSeed
+                |> (rndPos n Set.empty)
+                |> Task.succeed )
+                |> Task.perform Dummy Positions
 
 --UPDATE
 cellsMatch c1 c2 =
     c1.rowIndex == c2.rowIndex
         && c1.cellIndex == c2.cellIndex
 
+replaceCell : Cell -> Dict.Dict Coord Cell -> Dict.Dict Coord Cell
 replaceCell cell grid =
-    { grid | rows =
-        (grid.rows
-            |> List.map
-                (\r ->
-                    { r | cells =
-                        (r.cells
-                            |> List.map
-                                (\c ->
-                                    if (cellsMatch c cell) then
-                                        cell
-                                    else
-                                        c ) ) } ) ) }
-
-cellContainsBomb bombs cell =
-    Set.member (cell.rowIndex, cell.cellIndex) bombs
+    let
+        k = (cell.rowIndex, cell.cellIndex)
+    in
+        Dict.update k (\mc ->
+            case mc of
+                Just c -> Just cell
+                Nothing -> mc)  grid
 
 nearbyCells grid cell =
     []
 
 findNearbyBombs model cell =
     (nearbyCells model.grid cell)
-        |> List.filter (cellContainsBomb model.bombs)
+        |> List.filter .bomb
         |> List.length
 
 revealCell model cell =
-    let
-        bombs = model.bombs
-        containsBomb = cellContainsBomb bombs cell
-    in
-        case containsBomb of
-            True ->
-                { model | state = Lost
-                , grid = model.grid
-                    |> (replaceCell { cell | state = Cleared }) }
-            False ->
-                let
-                    nearbyBombs = findNearbyBombs model cell
-                    updatedModel =
-                        { model | grid = model.grid
-                                |> (replaceCell { cell | state = Cleared }) }
-                in
-                    case nearbyBombs of
-                        0 ->
-                            -- if there are 0, show that cell and reveal all surrounding cells
-                            updatedModel
-                        _ ->
-                            -- if there are > 0, show that cell
-                            updatedModel
+    case cell.bomb of
+        True ->
+            { model | state = Lost
+            , grid = model.grid
+                |> (replaceCell { cell | state = Cleared }) }
+        False ->
+            let
+                nearbyBombs = findNearbyBombs model cell
+                updatedModel =
+                    { model | grid = model.grid
+                            |> (replaceCell { cell | state = Cleared }) }
+            in
+                case nearbyBombs of
+                    0 ->
+                        -- if there are 0, show that cell and reveal all surrounding cells
+                        updatedModel
+                    _ ->
+                        -- if there are > 0, show that cell
+                        updatedModel
 
 flagCell model cell =
     let
@@ -178,6 +159,12 @@ flagCell model cell =
                 changeState (model.numberOfBombs - 1) Flagged
             _ ->
                 model
+
+addBombToGrid coord grid =
+    Dict.update coord (\mc ->
+        case mc of
+            Just c -> Just { c | bomb = True }
+            Nothing -> Nothing) grid
 
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -202,7 +189,12 @@ update msg model =
                 (model, Cmd.none)
 
             Positions pos ->
-                ({ model | bombs = pos }, Cmd.none)
+                let
+                    grid =
+                        pos
+                            |> Set.foldl addBombToGrid model.grid
+                in
+                    ({ model | grid = grid }, Cmd.none)
 
             StartGame ->
                 startGame model
@@ -229,26 +221,32 @@ update msg model =
 
 
 --VIEW STUFF
-drawCell bombs cell =
+drawCell grid rowIndex cellIndex =
     let
-        cls =
-            case cell.state of
-                Hidden -> "cell hidden"
-                Flagged -> "cell flagged"
-                Cleared ->
-                    case (cellContainsBomb bombs cell) of
-                        True -> "cell cleared bomb"
-                        False -> "cell cleared"
+        maybeCell = Dict.get (rowIndex, cellIndex) grid
     in
-        div
-            [ class cls
-            , onClick (ClickedCell cell) ]
-            [ ]
+        case maybeCell of
+            Just cell ->
+                let
+                    cls =
+                        case cell.state of
+                            Hidden -> "cell hidden"
+                            Flagged -> "cell flagged"
+                            Cleared ->
+                                case cell.bomb of
+                                    True -> "cell cleared bomb"
+                                    False -> "cell cleared"
+                in
+                    div
+                        [ class cls
+                        , onClick (ClickedCell cell) ]
+                        [ ]
+            Nothing -> div [][]
 
-drawRow bombs row =
+drawRow grid rowIndex =
     div
         [ class "row" ]
-        (row.cells |> List.map (drawCell bombs))
+        ([0..9] |> List.map (drawCell grid rowIndex))
 
 startButton model =
     let
@@ -299,7 +297,7 @@ view model =
             [ header model
             , div
                 [ class "grid" ]
-                (model.grid.rows |> List.map (drawRow model.bombs))
+                ([0..9] |> List.map (drawRow model.grid))
             ]
         ]
 
