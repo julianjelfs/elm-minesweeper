@@ -8738,6 +8738,34 @@ var _user$project$View$root = function (model) {
 							_elm_lang$core$List$map,
 							_user$project$View$drawRow(model.grid),
 							_elm_lang$core$Native_List.range(0, 9)))
+					])),
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('see-code')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						A2(
+						_elm_lang$html$Html$span,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text('See the code '),
+								A2(
+								_elm_lang$html$Html$a,
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html_Attributes$target('_blank'),
+										_elm_lang$html$Html_Attributes$href('https://github.com/julianjelfs/elm-minesweeper')
+									]),
+								_elm_lang$core$Native_List.fromArray(
+									[
+										_elm_lang$html$Html$text('here')
+									]))
+							]))
 					]))
 			]));
 };

@@ -89,5 +89,11 @@ root model =
                 [ class "grid" ]
                 ([0..9] |> List.map (drawRow model.grid))
             ]
+        , div
+            [ class "see-code" ]
+            [ span []
+                [ text "See the code "
+                , a [ target "_blank", href "https://github.com/julianjelfs/elm-minesweeper"] [ text "here" ]
+                ]
+            ]
         ]
-

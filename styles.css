@@ -13,9 +13,13 @@ body {
     color:red;
 }
 
-.instructions {
+.instructions, .see-code {
     font-style: italic;
     margin-bottom:10px;
+}
+
+.see-code {
+    margin-top:10px;
 }
 
 .game-area {
