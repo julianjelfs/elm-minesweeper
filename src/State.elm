@@ -7,72 +7,31 @@ import Debug exposing (log)
 
 ctrl = 17
 
-replaceCell : Cell -> Dict.Dict Coord Cell -> Dict.Dict Coord Cell
 replaceCell cell grid =
-    Dict.update (cell.rowIndex, cell.cellIndex) (\mc ->
-        case mc of
-            Just c -> Just cell
-            Nothing -> mc)  grid
+    Dict.update (cell.x, cell.y) (\mc -> Maybe.map (\c -> cell) mc) grid
 
-translate grid cell (dx, dy) =
-    Dict.get (dx cell.cellIndex, dy cell.rowIndex) grid
-
-inc x =
-    x + 1
-
-dec x =
-    x - 1
-
-id x =
-    x
-
-{--
-(-1,-1) (0, -1) (1, -1)
-(-1, 0) (0,0)   (1, 0)
-(-1, 1) (0, 1)  (1, 1)
---}
-nearbyCells grid cell =
-    [ (dec, dec)
-    , (dec, id)
-    , (dec, inc)
-    , (id, dec)
-    , (id, inc)
-    , (inc, dec)
-    , (inc, id)
-    , (inc, inc) ]
-        |> List.filterMap (translate grid cell)
-
-findNearbyBombs nearby grid cell =
-    case cell.nearbyBombs of
-        Just n -> n
-        Nothing ->
-            nearby
-                |> List.filter .bomb
-                |> List.length
-
-revealCell model cell =
+revealCell model grid cell =
     case cell.bomb of
         True ->
             { model | state = Lost
-            , grid = model.grid
-                |> (replaceCell { cell | state = Cleared }) }
+            , grid = grid |> (replaceCell { cell | state = Cleared }) }
         False ->
             let
-                nearby = nearbyCells model.grid cell
-
-                nearbyBombs =
-                    findNearbyBombs nearby model.grid cell
-
                 updatedModel =
                     { model | grid =
-                        model.grid
-                            |> (replaceCell { cell | state = Cleared
-                             , nearbyBombs = Just nearbyBombs }) }
+                        grid |> (replaceCell { cell | state = Cleared }) }
             in
-                case nearbyBombs of
-                    0 ->
+                case cell.nearbyBombs of
+                    Just 0 ->
                         -- if there are 0, show that cell and reveal all surrounding cells
-                        updatedModel
+                        let
+                            nearby =
+                                nearbyCells updatedModel.grid (cell.x, cell.y)
+                                    |> List.filter (\c -> c.state == Hidden)
+
+                            grid = List.foldl (\c g -> (revealCell model g c) |> .grid) updatedModel.grid nearby
+                        in
+                            { updatedModel | grid = grid }
                     _ ->
                         -- if there are > 0, show that cell
                         updatedModel
@@ -95,8 +54,10 @@ flagCell model cell =
 update: Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     let
-        startGame = (\m ->
-            ( { initialModel | state = Playing, ctrl = m.ctrl }, RandomPositions.get ))
+        startGame = (\m c ->
+            ( { initialModel | state = Playing
+                , ctrl = m.ctrl
+                , cellClicked = c }, RandomPositions.get ))
 
         ctrlClick = (\m k b ->
             case k of
@@ -108,17 +69,26 @@ update msg model =
                 True ->
                     (flagCell m c)
                 False ->
-                    (revealCell m c) )
+                    (revealCell m m.grid c) )
     in
         case msg of
             Dummy () ->
                 (model, Cmd.none)
 
             Positions pos ->
-                ({ model | grid = (addBombsToGrid pos model.grid) }, Cmd.none)
+                let
+                    grid = addBombsToGrid pos model.grid
+                    cellClicked = Maybe.andThen model.cellClicked (\coord -> getCell grid coord)
+                    m = { model | cellClicked = Nothing, grid = grid }
+                in
+                    case cellClicked of
+                        Nothing ->
+                            (m, Cmd.none)
+                        Just c ->
+                            ( (handleClick m c), Cmd.none )
 
             StartGame ->
-                startGame model
+                startGame model Nothing
 
             Tick t ->
                 ( { model | duration = model.duration + t }, Cmd.none )
@@ -128,11 +98,7 @@ update msg model =
                     Playing ->
                         ( (handleClick model cell), Cmd.none )
                     _ ->
-                        let
-                            (m, fx) =
-                                startGame model
-                        in
-                            ( (handleClick m cell), fx )
+                        startGame model (Just (cell.x, cell.y))
 
             KeyDown k ->
                 ctrlClick model k True

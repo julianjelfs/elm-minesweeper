@@ -16,10 +16,10 @@ rndPos n pos seed =
             pos
         else
             let
-                (r, seed2) = Random.step (Random.int 0 9) seed
-                (c, seed3) = Random.step (Random.int 0 9) seed2
+                (x, seed2) = Random.step (Random.int 0 9) seed
+                (y, seed3) = Random.step (Random.int 0 9) seed2
             in
-                rndPos n (Set.insert (r, c) pos) seed3
+                rndPos n (Set.insert (x, y) pos) seed3
 
 
 get =

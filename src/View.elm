@@ -7,9 +7,9 @@ import Dict
 import Types exposing (..)
 import String exposing (padLeft)
 
-drawCell grid rowIndex cellIndex =
+drawCell grid y x =
     let
-        maybeCell = Dict.get (rowIndex, cellIndex) grid
+        maybeCell = Dict.get (x, y) grid
     in
         case maybeCell of
             Just cell ->
@@ -24,19 +24,19 @@ drawCell grid rowIndex cellIndex =
                                     False -> ("cell cleared",
                                         case cell.nearbyBombs of
                                             Nothing -> ""
+                                            Just 0 -> ""
                                             Just n -> toString n)
                 in
                     div
                         [ class cls
                         , onClick (ClickedCell cell) ]
-                        --[ text ((toString cell.rowIndex) ++ "," ++ (toString cell.cellIndex)) ]
                         [ text txt ]
             Nothing -> div [][]
 
-drawRow grid rowIndex =
+drawRow grid y =
     div
         [ class "row" ]
-        ([0..9] |> List.map (drawCell grid rowIndex))
+        ([0..9] |> List.map (drawCell grid y))
 
 startButton model =
     let

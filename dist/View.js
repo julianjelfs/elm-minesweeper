@@ -8426,24 +8426,87 @@ var _user$project$Types$addBombToGrid = F2(
 			},
 			grid);
 	});
+var _user$project$Types$translate = F3(
+	function (grid, _p2, _p1) {
+		var _p3 = _p2;
+		var _p4 = _p1;
+		return A2(
+			_elm_lang$core$Dict$get,
+			{
+				ctor: '_Tuple2',
+				_0: _p4._0(_p3._0),
+				_1: _p4._1(_p3._1)
+			},
+			grid);
+	});
+var _user$project$Types$getCell = F2(
+	function (grid, coord) {
+		return A2(_elm_lang$core$Dict$get, coord, grid);
+	});
+var _user$project$Types$id = function (x) {
+	return x;
+};
+var _user$project$Types$dec = function (x) {
+	return x - 1;
+};
+var _user$project$Types$inc = function (x) {
+	return x + 1;
+};
+var _user$project$Types$nearbyCells = F2(
+	function (grid, coord) {
+		return A2(
+			_elm_lang$core$List$filterMap,
+			A2(_user$project$Types$translate, grid, coord),
+			_elm_lang$core$Native_List.fromArray(
+				[
+					{ctor: '_Tuple2', _0: _user$project$Types$dec, _1: _user$project$Types$dec},
+					{ctor: '_Tuple2', _0: _user$project$Types$dec, _1: _user$project$Types$id},
+					{ctor: '_Tuple2', _0: _user$project$Types$dec, _1: _user$project$Types$inc},
+					{ctor: '_Tuple2', _0: _user$project$Types$id, _1: _user$project$Types$dec},
+					{ctor: '_Tuple2', _0: _user$project$Types$id, _1: _user$project$Types$inc},
+					{ctor: '_Tuple2', _0: _user$project$Types$inc, _1: _user$project$Types$dec},
+					{ctor: '_Tuple2', _0: _user$project$Types$inc, _1: _user$project$Types$id},
+					{ctor: '_Tuple2', _0: _user$project$Types$inc, _1: _user$project$Types$inc}
+				]));
+	});
+var _user$project$Types$populateNearbyBombs = function (grid) {
+	return A2(
+		_elm_lang$core$Dict$map,
+		F2(
+			function (k, v) {
+				var nearbyBombs = _elm_lang$core$Maybe$Just(
+					_elm_lang$core$List$length(
+						A2(
+							_elm_lang$core$List$filter,
+							function (_) {
+								return _.bomb;
+							},
+							A2(_user$project$Types$nearbyCells, grid, k))));
+				return _elm_lang$core$Native_Utils.update(
+					v,
+					{nearbyBombs: nearbyBombs});
+			}),
+		grid);
+};
 var _user$project$Types$addBombsToGrid = F2(
 	function (pos, grid) {
-		return A3(_elm_lang$core$Set$foldl, _user$project$Types$addBombToGrid, grid, pos);
+		return _user$project$Types$populateNearbyBombs(
+			A3(_elm_lang$core$Set$foldl, _user$project$Types$addBombToGrid, grid, pos));
 	});
 var _user$project$Types$Cell = F5(
 	function (a, b, c, d, e) {
-		return {rowIndex: a, cellIndex: b, state: c, bomb: d, nearbyBombs: e};
+		return {x: a, y: b, state: c, bomb: d, nearbyBombs: e};
 	});
-var _user$project$Types$Model = F5(
-	function (a, b, c, d, e) {
-		return {grid: a, duration: b, state: c, ctrl: d, numberOfBombs: e};
+var _user$project$Types$Model = F6(
+	function (a, b, c, d, e, f) {
+		return {grid: a, duration: b, state: c, ctrl: d, numberOfBombs: e, cellClicked: f};
 	});
 var _user$project$Types$Flagged = {ctor: 'Flagged'};
 var _user$project$Types$Cleared = {ctor: 'Cleared'};
 var _user$project$Types$Hidden = {ctor: 'Hidden'};
-var _user$project$Types$createCell = function (_p1) {
-	var _p2 = _p1;
-	return A5(_user$project$Types$Cell, _p2._0, _p2._1, _user$project$Types$Hidden, false, _elm_lang$core$Maybe$Nothing);
+var _user$project$Types$createCell = function (_p5) {
+	var _p6 = _p5;
+	return A5(_user$project$Types$Cell, _p6._0, _p6._1, _user$project$Types$Hidden, false, _elm_lang$core$Maybe$Nothing);
 };
 var _user$project$Types$createGrid = function () {
 	var row = function (i) {
@@ -8475,7 +8538,7 @@ var _user$project$Types$Lost = {ctor: 'Lost'};
 var _user$project$Types$Won = {ctor: 'Won'};
 var _user$project$Types$Playing = {ctor: 'Playing'};
 var _user$project$Types$NewGame = {ctor: 'NewGame'};
-var _user$project$Types$initialModel = A5(_user$project$Types$Model, _user$project$Types$createGrid, 0, _user$project$Types$NewGame, false, _user$project$Config$config.initialBombs);
+var _user$project$Types$initialModel = A6(_user$project$Types$Model, _user$project$Types$createGrid, 0, _user$project$Types$NewGame, false, _user$project$Config$config.initialBombs, _elm_lang$core$Maybe$Nothing);
 var _user$project$Types$KeyUp = function (a) {
 	return {ctor: 'KeyUp', _0: a};
 };
@@ -8564,10 +8627,10 @@ var _user$project$View$header = function (model) {
 			]));
 };
 var _user$project$View$drawCell = F3(
-	function (grid, rowIndex, cellIndex) {
+	function (grid, y, x) {
 		var maybeCell = A2(
 			_elm_lang$core$Dict$get,
-			{ctor: '_Tuple2', _0: rowIndex, _1: cellIndex},
+			{ctor: '_Tuple2', _0: x, _1: y},
 			grid);
 		var _p2 = maybeCell;
 		if (_p2.ctor === 'Just') {
@@ -8592,7 +8655,11 @@ var _user$project$View$drawCell = F3(
 									if (_p6.ctor === 'Nothing') {
 										return '';
 									} else {
-										return _elm_lang$core$Basics$toString(_p6._0);
+										if (_p6._0 === 0) {
+											return '';
+										} else {
+											return _elm_lang$core$Basics$toString(_p6._0);
+										}
 									}
 								}()
 							};
@@ -8623,7 +8690,7 @@ var _user$project$View$drawCell = F3(
 		}
 	});
 var _user$project$View$drawRow = F2(
-	function (grid, rowIndex) {
+	function (grid, y) {
 		return A2(
 			_elm_lang$html$Html$div,
 			_elm_lang$core$Native_List.fromArray(
@@ -8632,7 +8699,7 @@ var _user$project$View$drawRow = F2(
 				]),
 			A2(
 				_elm_lang$core$List$map,
-				A2(_user$project$View$drawCell, grid, rowIndex),
+				A2(_user$project$View$drawCell, grid, y),
 				_elm_lang$core$Native_List.range(0, 9)));
 	});
 var _user$project$View$root = function (model) {

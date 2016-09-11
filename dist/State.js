@@ -6767,24 +6767,87 @@ var _user$project$Types$addBombToGrid = F2(
 			},
 			grid);
 	});
+var _user$project$Types$translate = F3(
+	function (grid, _p2, _p1) {
+		var _p3 = _p2;
+		var _p4 = _p1;
+		return A2(
+			_elm_lang$core$Dict$get,
+			{
+				ctor: '_Tuple2',
+				_0: _p4._0(_p3._0),
+				_1: _p4._1(_p3._1)
+			},
+			grid);
+	});
+var _user$project$Types$getCell = F2(
+	function (grid, coord) {
+		return A2(_elm_lang$core$Dict$get, coord, grid);
+	});
+var _user$project$Types$id = function (x) {
+	return x;
+};
+var _user$project$Types$dec = function (x) {
+	return x - 1;
+};
+var _user$project$Types$inc = function (x) {
+	return x + 1;
+};
+var _user$project$Types$nearbyCells = F2(
+	function (grid, coord) {
+		return A2(
+			_elm_lang$core$List$filterMap,
+			A2(_user$project$Types$translate, grid, coord),
+			_elm_lang$core$Native_List.fromArray(
+				[
+					{ctor: '_Tuple2', _0: _user$project$Types$dec, _1: _user$project$Types$dec},
+					{ctor: '_Tuple2', _0: _user$project$Types$dec, _1: _user$project$Types$id},
+					{ctor: '_Tuple2', _0: _user$project$Types$dec, _1: _user$project$Types$inc},
+					{ctor: '_Tuple2', _0: _user$project$Types$id, _1: _user$project$Types$dec},
+					{ctor: '_Tuple2', _0: _user$project$Types$id, _1: _user$project$Types$inc},
+					{ctor: '_Tuple2', _0: _user$project$Types$inc, _1: _user$project$Types$dec},
+					{ctor: '_Tuple2', _0: _user$project$Types$inc, _1: _user$project$Types$id},
+					{ctor: '_Tuple2', _0: _user$project$Types$inc, _1: _user$project$Types$inc}
+				]));
+	});
+var _user$project$Types$populateNearbyBombs = function (grid) {
+	return A2(
+		_elm_lang$core$Dict$map,
+		F2(
+			function (k, v) {
+				var nearbyBombs = _elm_lang$core$Maybe$Just(
+					_elm_lang$core$List$length(
+						A2(
+							_elm_lang$core$List$filter,
+							function (_) {
+								return _.bomb;
+							},
+							A2(_user$project$Types$nearbyCells, grid, k))));
+				return _elm_lang$core$Native_Utils.update(
+					v,
+					{nearbyBombs: nearbyBombs});
+			}),
+		grid);
+};
 var _user$project$Types$addBombsToGrid = F2(
 	function (pos, grid) {
-		return A3(_elm_lang$core$Set$foldl, _user$project$Types$addBombToGrid, grid, pos);
+		return _user$project$Types$populateNearbyBombs(
+			A3(_elm_lang$core$Set$foldl, _user$project$Types$addBombToGrid, grid, pos));
 	});
 var _user$project$Types$Cell = F5(
 	function (a, b, c, d, e) {
-		return {rowIndex: a, cellIndex: b, state: c, bomb: d, nearbyBombs: e};
+		return {x: a, y: b, state: c, bomb: d, nearbyBombs: e};
 	});
-var _user$project$Types$Model = F5(
-	function (a, b, c, d, e) {
-		return {grid: a, duration: b, state: c, ctrl: d, numberOfBombs: e};
+var _user$project$Types$Model = F6(
+	function (a, b, c, d, e, f) {
+		return {grid: a, duration: b, state: c, ctrl: d, numberOfBombs: e, cellClicked: f};
 	});
 var _user$project$Types$Flagged = {ctor: 'Flagged'};
 var _user$project$Types$Cleared = {ctor: 'Cleared'};
 var _user$project$Types$Hidden = {ctor: 'Hidden'};
-var _user$project$Types$createCell = function (_p1) {
-	var _p2 = _p1;
-	return A5(_user$project$Types$Cell, _p2._0, _p2._1, _user$project$Types$Hidden, false, _elm_lang$core$Maybe$Nothing);
+var _user$project$Types$createCell = function (_p5) {
+	var _p6 = _p5;
+	return A5(_user$project$Types$Cell, _p6._0, _p6._1, _user$project$Types$Hidden, false, _elm_lang$core$Maybe$Nothing);
 };
 var _user$project$Types$createGrid = function () {
 	var row = function (i) {
@@ -6816,7 +6879,7 @@ var _user$project$Types$Lost = {ctor: 'Lost'};
 var _user$project$Types$Won = {ctor: 'Won'};
 var _user$project$Types$Playing = {ctor: 'Playing'};
 var _user$project$Types$NewGame = {ctor: 'NewGame'};
-var _user$project$Types$initialModel = A5(_user$project$Types$Model, _user$project$Types$createGrid, 0, _user$project$Types$NewGame, false, _user$project$Config$config.initialBombs);
+var _user$project$Types$initialModel = A6(_user$project$Types$Model, _user$project$Types$createGrid, 0, _user$project$Types$NewGame, false, _user$project$Config$config.initialBombs, _elm_lang$core$Maybe$Nothing);
 var _user$project$Types$KeyUp = function (a) {
 	return {ctor: 'KeyUp', _0: a};
 };
@@ -6849,18 +6912,18 @@ var _user$project$RandomPositions$rndPos = F3(
 					_elm_lang$core$Random$step,
 					A2(_elm_lang$core$Random$int, 0, 9),
 					seed);
-				var r = _p0._0;
+				var x = _p0._0;
 				var seed2 = _p0._1;
 				var _p1 = A2(
 					_elm_lang$core$Random$step,
 					A2(_elm_lang$core$Random$int, 0, 9),
 					seed2);
-				var c = _p1._0;
+				var y = _p1._0;
 				var seed3 = _p1._1;
 				var _v0 = n,
 					_v1 = A2(
 					_elm_lang$core$Set$insert,
-					{ctor: '_Tuple2', _0: r, _1: c},
+					{ctor: '_Tuple2', _0: x, _1: y},
 					pos),
 					_v2 = seed3;
 				n = _v0;
@@ -6887,78 +6950,25 @@ var _user$project$RandomPositions$get = A3(
 						_elm_lang$core$Basics$round(t))));
 		}));
 
-var _user$project$State$findNearbyBombs = F3(
-	function (nearby, grid, cell) {
-		var _p0 = cell.nearbyBombs;
-		if (_p0.ctor === 'Just') {
-			return _p0._0;
-		} else {
-			return _elm_lang$core$List$length(
-				A2(
-					_elm_lang$core$List$filter,
-					function (_) {
-						return _.bomb;
-					},
-					nearby));
-		}
-	});
-var _user$project$State$id = function (x) {
-	return x;
-};
-var _user$project$State$dec = function (x) {
-	return x - 1;
-};
-var _user$project$State$inc = function (x) {
-	return x + 1;
-};
-var _user$project$State$translate = F3(
-	function (grid, cell, _p1) {
-		var _p2 = _p1;
-		return A2(
-			_elm_lang$core$Dict$get,
-			{
-				ctor: '_Tuple2',
-				_0: _p2._0(cell.cellIndex),
-				_1: _p2._1(cell.rowIndex)
-			},
-			grid);
-	});
-var _user$project$State$nearbyCells = F2(
-	function (grid, cell) {
-		return A2(
-			_elm_lang$core$List$filterMap,
-			A2(_user$project$State$translate, grid, cell),
-			_elm_lang$core$Native_List.fromArray(
-				[
-					{ctor: '_Tuple2', _0: _user$project$State$dec, _1: _user$project$State$dec},
-					{ctor: '_Tuple2', _0: _user$project$State$dec, _1: _user$project$State$id},
-					{ctor: '_Tuple2', _0: _user$project$State$dec, _1: _user$project$State$inc},
-					{ctor: '_Tuple2', _0: _user$project$State$id, _1: _user$project$State$dec},
-					{ctor: '_Tuple2', _0: _user$project$State$id, _1: _user$project$State$inc},
-					{ctor: '_Tuple2', _0: _user$project$State$inc, _1: _user$project$State$dec},
-					{ctor: '_Tuple2', _0: _user$project$State$inc, _1: _user$project$State$id},
-					{ctor: '_Tuple2', _0: _user$project$State$inc, _1: _user$project$State$inc}
-				]));
-	});
 var _user$project$State$replaceCell = F2(
 	function (cell, grid) {
 		return A3(
 			_elm_lang$core$Dict$update,
-			{ctor: '_Tuple2', _0: cell.rowIndex, _1: cell.cellIndex},
+			{ctor: '_Tuple2', _0: cell.x, _1: cell.y},
 			function (mc) {
-				var _p3 = mc;
-				if (_p3.ctor === 'Just') {
-					return _elm_lang$core$Maybe$Just(cell);
-				} else {
-					return mc;
-				}
+				return A2(
+					_elm_lang$core$Maybe$map,
+					function (c) {
+						return cell;
+					},
+					mc);
 			},
 			grid);
 	});
-var _user$project$State$revealCell = F2(
-	function (model, cell) {
-		var _p4 = cell.bomb;
-		if (_p4 === true) {
+var _user$project$State$revealCell = F3(
+	function (model, grid, cell) {
+		var _p0 = cell.bomb;
+		if (_p0 === true) {
 			return _elm_lang$core$Native_Utils.update(
 				model,
 				{
@@ -6968,11 +6978,9 @@ var _user$project$State$revealCell = F2(
 						_elm_lang$core$Native_Utils.update(
 							cell,
 							{state: _user$project$Types$Cleared}),
-						model.grid)
+						grid)
 				});
 		} else {
-			var nearby = A2(_user$project$State$nearbyCells, model.grid, cell);
-			var nearbyBombs = A3(_user$project$State$findNearbyBombs, nearby, model.grid, cell);
 			var updatedModel = _elm_lang$core$Native_Utils.update(
 				model,
 				{
@@ -6980,15 +6988,34 @@ var _user$project$State$revealCell = F2(
 						_user$project$State$replaceCell,
 						_elm_lang$core$Native_Utils.update(
 							cell,
-							{
-								state: _user$project$Types$Cleared,
-								nearbyBombs: _elm_lang$core$Maybe$Just(nearbyBombs)
-							}),
-						model.grid)
+							{state: _user$project$Types$Cleared}),
+						grid)
 				});
-			var _p5 = nearbyBombs;
-			if (_p5 === 0) {
-				return updatedModel;
+			var _p1 = cell.nearbyBombs;
+			if ((_p1.ctor === 'Just') && (_p1._0 === 0)) {
+				var nearby = A2(
+					_elm_lang$core$List$filter,
+					function (c) {
+						return _elm_lang$core$Native_Utils.eq(c.state, _user$project$Types$Hidden);
+					},
+					A2(
+						_user$project$Types$nearbyCells,
+						updatedModel.grid,
+						{ctor: '_Tuple2', _0: cell.x, _1: cell.y}));
+				var grid = A3(
+					_elm_lang$core$List$foldl,
+					F2(
+						function (c, g) {
+							return function (_) {
+								return _.grid;
+							}(
+								A3(_user$project$State$revealCell, model, g, c));
+						}),
+					updatedModel.grid,
+					nearby);
+				return _elm_lang$core$Native_Utils.update(
+					updatedModel,
+					{grid: grid});
 			} else {
 				return updatedModel;
 			}
@@ -7010,8 +7037,8 @@ var _user$project$State$flagCell = F2(
 							model.grid)
 					});
 			});
-		var _p6 = cell.state;
-		switch (_p6.ctor) {
+		var _p2 = cell.state;
+		switch (_p2.ctor) {
 			case 'Flagged':
 				return A2(changeState, model.numberOfBombs + 1, _user$project$Types$Hidden);
 			case 'Hidden':
@@ -7024,16 +7051,16 @@ var _user$project$State$update = F2(
 	function (msg, model) {
 		var handleClick = F2(
 			function (m, c) {
-				var _p7 = m.ctrl;
-				if (_p7 === true) {
+				var _p3 = m.ctrl;
+				if (_p3 === true) {
 					return A2(_user$project$State$flagCell, m, c);
 				} else {
-					return A2(_user$project$State$revealCell, m, c);
+					return A3(_user$project$State$revealCell, m, m.grid, c);
 				}
 			});
 		var ctrlClick = F3(
 			function (m, k, b) {
-				var _p8 = k;
+				var _p4 = k;
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
@@ -7042,62 +7069,71 @@ var _user$project$State$update = F2(
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			});
-		var startGame = function (m) {
-			return {
-				ctor: '_Tuple2',
-				_0: _elm_lang$core$Native_Utils.update(
-					_user$project$Types$initialModel,
-					{state: _user$project$Types$Playing, ctrl: m.ctrl}),
-				_1: _user$project$RandomPositions$get
-			};
-		};
-		var _p9 = msg;
-		switch (_p9.ctor) {
-			case 'Dummy':
-				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-			case 'Positions':
+		var startGame = F2(
+			function (m, c) {
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							grid: A2(_user$project$Types$addBombsToGrid, _p9._0, model.grid)
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
+						_user$project$Types$initialModel,
+						{state: _user$project$Types$Playing, ctrl: m.ctrl, cellClicked: c}),
+					_1: _user$project$RandomPositions$get
 				};
+			});
+		var _p5 = msg;
+		switch (_p5.ctor) {
+			case 'Dummy':
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'Positions':
+				var grid = A2(_user$project$Types$addBombsToGrid, _p5._0, model.grid);
+				var cellClicked = A2(
+					_elm_lang$core$Maybe$andThen,
+					model.cellClicked,
+					function (coord) {
+						return A2(_user$project$Types$getCell, grid, coord);
+					});
+				var m = _elm_lang$core$Native_Utils.update(
+					model,
+					{cellClicked: _elm_lang$core$Maybe$Nothing, grid: grid});
+				var _p6 = cellClicked;
+				if (_p6.ctor === 'Nothing') {
+					return {ctor: '_Tuple2', _0: m, _1: _elm_lang$core$Platform_Cmd$none};
+				} else {
+					return {
+						ctor: '_Tuple2',
+						_0: A2(handleClick, m, _p6._0),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				}
 			case 'StartGame':
-				return startGame(model);
+				return A2(startGame, model, _elm_lang$core$Maybe$Nothing);
 			case 'Tick':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{duration: model.duration + _p9._0}),
+						{duration: model.duration + _p5._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'ClickedCell':
-				var _p12 = _p9._0;
-				var _p10 = model.state;
-				if (_p10.ctor === 'Playing') {
+				var _p8 = _p5._0;
+				var _p7 = model.state;
+				if (_p7.ctor === 'Playing') {
 					return {
 						ctor: '_Tuple2',
-						_0: A2(handleClick, model, _p12),
+						_0: A2(handleClick, model, _p8),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				} else {
-					var _p11 = startGame(model);
-					var m = _p11._0;
-					var fx = _p11._1;
-					return {
-						ctor: '_Tuple2',
-						_0: A2(handleClick, m, _p12),
-						_1: fx
-					};
+					return A2(
+						startGame,
+						model,
+						_elm_lang$core$Maybe$Just(
+							{ctor: '_Tuple2', _0: _p8.x, _1: _p8.y}));
 				}
 			case 'KeyDown':
-				return A3(ctrlClick, model, _p9._0, true);
+				return A3(ctrlClick, model, _p5._0, true);
 			default:
-				return A3(ctrlClick, model, _p9._0, false);
+				return A3(ctrlClick, model, _p5._0, false);
 		}
 	});
 var _user$project$State$ctrl = 17;
