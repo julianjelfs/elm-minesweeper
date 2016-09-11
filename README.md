@@ -1,7 +1,7 @@
 # elm-minesweeper
 
-This should be a pretty straightforward way to get a bit more elm practice. Need a rest from the difficult multi-player stuff.
+An (almost complete) implementation of minesweeper in elm.
 
-Yeah that turned out not to be true.
+Code is a little bit of a mess at the moment. Will tidy up.
 
 Check it out [here](https://julianjelfs.github.io/elm-minesweeper/dist/index.html)
