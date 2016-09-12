@@ -75,10 +75,23 @@ header model =
         , timer model
         ]
 
+durationToSeconds = (flip (/) 1000) >> round >> toString
+
+youWin: Model -> Html Msg
+youWin model =
+    div
+        [ class "you-win" ]
+        [ div [] [ text ("Congratulations! You won in " ++ (model.duration |> durationToSeconds) ++ " seconds") ]
+        , button
+            [ class "restart"
+            , onClick StartGame ]
+            [ text "Start Again" ]
+        ]
+
 root: Model -> Html Msg
 root model =
     div
-        []
+        [ class "container" ]
         [ div
             [ class "instructions"]
             [ text "Click to reveal a square, Ctrl-click to flag a square" ]
@@ -96,4 +109,7 @@ root model =
                 , a [ target "_blank", href "https://github.com/julianjelfs/elm-minesweeper"] [ text "here" ]
                 ]
             ]
+        , (case model.state of
+            Won -> youWin model
+            _ -> div [] [])
         ]

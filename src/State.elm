@@ -4,6 +4,7 @@ import Types exposing (..)
 import RandomPositions
 import Dict
 import Debug exposing (log)
+import Config exposing (config)
 
 ctrl = 17
 
@@ -46,9 +47,18 @@ flagCell model cell =
             Flagged ->
                 changeState (model.numberOfBombs + 1) Hidden
             Hidden ->
-                changeState (model.numberOfBombs - 1) Flagged
+                if model.numberOfBombs > 0 then
+                    changeState (model.numberOfBombs - 1) Flagged
+                else
+                    model
             _ ->
                 model
+
+
+noHiddenCells grid =
+    (grid
+        |> Dict.filter (\k v -> v.state == Hidden)
+        |> Dict.size) == 0
 
 
 update: Msg -> Model -> (Model, Cmd Msg)
@@ -65,11 +75,23 @@ update msg model =
                     ( { m | ctrl = b }, Cmd.none ))
 
         handleClick = (\m c ->
-            case m.ctrl of
-                True ->
-                    (flagCell m c)
-                False ->
-                    (revealCell m m.grid c) )
+            let
+                updated =
+                    case m.ctrl of
+                        True ->
+                            (flagCell m c)
+                        False ->
+                            (revealCell m m.grid c)
+
+                won =
+                    (updated.state == Playing)
+                        && (updated.numberOfBombs == 0)
+                        && (noHiddenCells updated.grid)
+            in
+                if won == True then
+                    { updated | state = Won }
+                else
+                    updated )
     in
         case msg of
             Dummy () ->

@@ -6950,6 +6950,18 @@ var _user$project$RandomPositions$get = A3(
 						_elm_lang$core$Basics$round(t))));
 		}));
 
+var _user$project$State$noHiddenCells = function (grid) {
+	return _elm_lang$core$Native_Utils.eq(
+		_elm_lang$core$Dict$size(
+			A2(
+				_elm_lang$core$Dict$filter,
+				F2(
+					function (k, v) {
+						return _elm_lang$core$Native_Utils.eq(v.state, _user$project$Types$Hidden);
+					}),
+				grid)),
+		0);
+};
 var _user$project$State$replaceCell = F2(
 	function (cell, grid) {
 		return A3(
@@ -7042,7 +7054,7 @@ var _user$project$State$flagCell = F2(
 			case 'Flagged':
 				return A2(changeState, model.numberOfBombs + 1, _user$project$Types$Hidden);
 			case 'Hidden':
-				return A2(changeState, model.numberOfBombs - 1, _user$project$Types$Flagged);
+				return (_elm_lang$core$Native_Utils.cmp(model.numberOfBombs, 0) > 0) ? A2(changeState, model.numberOfBombs - 1, _user$project$Types$Flagged) : model;
 			default:
 				return model;
 		}
@@ -7051,12 +7063,18 @@ var _user$project$State$update = F2(
 	function (msg, model) {
 		var handleClick = F2(
 			function (m, c) {
-				var _p3 = m.ctrl;
-				if (_p3 === true) {
-					return A2(_user$project$State$flagCell, m, c);
-				} else {
-					return A3(_user$project$State$revealCell, m, m.grid, c);
-				}
+				var updated = function () {
+					var _p3 = m.ctrl;
+					if (_p3 === true) {
+						return A2(_user$project$State$flagCell, m, c);
+					} else {
+						return A3(_user$project$State$revealCell, m, m.grid, c);
+					}
+				}();
+				var won = _elm_lang$core$Native_Utils.eq(updated.state, _user$project$Types$Playing) && (_elm_lang$core$Native_Utils.eq(updated.numberOfBombs, 0) && _user$project$State$noHiddenCells(updated.grid));
+				return _elm_lang$core$Native_Utils.eq(won, true) ? _elm_lang$core$Native_Utils.update(
+					updated,
+					{state: _user$project$Types$Won}) : updated;
 			});
 		var ctrlClick = F3(
 			function (m, k, b) {

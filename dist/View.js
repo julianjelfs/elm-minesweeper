@@ -8559,12 +8559,61 @@ var _user$project$Types$Dummy = function (a) {
 	return {ctor: 'Dummy', _0: a};
 };
 
-var _user$project$View$padLeftNum = function (_p0) {
+var _user$project$View$durationToSeconds = function (_p0) {
+	return _elm_lang$core$Basics$toString(
+		_elm_lang$core$Basics$round(
+			A3(
+				_elm_lang$core$Basics$flip,
+				F2(
+					function (x, y) {
+						return x / y;
+					}),
+				1000,
+				_p0)));
+};
+var _user$project$View$youWin = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('you-win')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'Congratulations! You won in ',
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								_user$project$View$durationToSeconds(model.duration),
+								' seconds')))
+					])),
+				A2(
+				_elm_lang$html$Html$button,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('restart'),
+						_elm_lang$html$Html_Events$onClick(_user$project$Types$StartGame)
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text('Start Again')
+					]))
+			]));
+};
+var _user$project$View$padLeftNum = function (_p1) {
 	return A3(
 		_elm_lang$core$String$padLeft,
 		3,
 		_elm_lang$core$Native_Utils.chr('0'),
-		_elm_lang$core$Basics$toString(_p0));
+		_elm_lang$core$Basics$toString(_p1));
 };
 var _user$project$View$bombCount = function (model) {
 	return A2(
@@ -8595,8 +8644,8 @@ var _user$project$View$timer = function (model) {
 };
 var _user$project$View$startButton = function (model) {
 	var cls = function () {
-		var _p1 = model.state;
-		if (_p1.ctor === 'Lost') {
+		var _p2 = model.state;
+		if (_p2.ctor === 'Lost') {
 			return 'start-button sad';
 		} else {
 			return 'start-button happy';
@@ -8632,33 +8681,33 @@ var _user$project$View$drawCell = F3(
 			_elm_lang$core$Dict$get,
 			{ctor: '_Tuple2', _0: x, _1: y},
 			grid);
-		var _p2 = maybeCell;
-		if (_p2.ctor === 'Just') {
-			var _p7 = _p2._0;
-			var _p3 = function () {
-				var _p4 = _p7.state;
-				switch (_p4.ctor) {
+		var _p3 = maybeCell;
+		if (_p3.ctor === 'Just') {
+			var _p8 = _p3._0;
+			var _p4 = function () {
+				var _p5 = _p8.state;
+				switch (_p5.ctor) {
 					case 'Hidden':
 						return {ctor: '_Tuple2', _0: 'cell hidden', _1: ''};
 					case 'Flagged':
 						return {ctor: '_Tuple2', _0: 'cell flagged', _1: ''};
 					default:
-						var _p5 = _p7.bomb;
-						if (_p5 === true) {
+						var _p6 = _p8.bomb;
+						if (_p6 === true) {
 							return {ctor: '_Tuple2', _0: 'cell cleared bomb', _1: ''};
 						} else {
 							return {
 								ctor: '_Tuple2',
 								_0: 'cell cleared',
 								_1: function () {
-									var _p6 = _p7.nearbyBombs;
-									if (_p6.ctor === 'Nothing') {
+									var _p7 = _p8.nearbyBombs;
+									if (_p7.ctor === 'Nothing') {
 										return '';
 									} else {
-										if (_p6._0 === 0) {
+										if (_p7._0 === 0) {
 											return '';
 										} else {
-											return _elm_lang$core$Basics$toString(_p6._0);
+											return _elm_lang$core$Basics$toString(_p7._0);
 										}
 									}
 								}()
@@ -8666,15 +8715,15 @@ var _user$project$View$drawCell = F3(
 						}
 				}
 			}();
-			var cls = _p3._0;
-			var txt = _p3._1;
+			var cls = _p4._0;
+			var txt = _p4._1;
 			return A2(
 				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(
 					[
 						_elm_lang$html$Html_Attributes$class(cls),
 						_elm_lang$html$Html_Events$onClick(
-						_user$project$Types$ClickedCell(_p7))
+						_user$project$Types$ClickedCell(_p8))
 					]),
 				_elm_lang$core$Native_List.fromArray(
 					[
@@ -8706,7 +8755,9 @@ var _user$project$View$root = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
-			[]),
+			[
+				_elm_lang$html$Html_Attributes$class('container')
+			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
 				A2(
@@ -8766,7 +8817,20 @@ var _user$project$View$root = function (model) {
 										_elm_lang$html$Html$text('here')
 									]))
 							]))
-					]))
+					])),
+				function () {
+				var _p9 = model.state;
+				if (_p9.ctor === 'Won') {
+					return _user$project$View$youWin(model);
+				} else {
+					return A2(
+						_elm_lang$html$Html$div,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Native_List.fromArray(
+							[]));
+				}
+			}()
 			]));
 };
 
