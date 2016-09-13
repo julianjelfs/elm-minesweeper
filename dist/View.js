@@ -8559,8 +8559,28 @@ var _user$project$Types$Dummy = function (a) {
 	return {ctor: 'Dummy', _0: a};
 };
 
-var _user$project$View$durationToSeconds = function (_p0) {
-	return _elm_lang$core$Basics$toString(
+var _user$project$View$padLeftNum = function (_p0) {
+	return A3(
+		_elm_lang$core$String$padLeft,
+		3,
+		_elm_lang$core$Native_Utils.chr('0'),
+		_elm_lang$core$Basics$toString(_p0));
+};
+var _user$project$View$bombCount = function (model) {
+	return A2(
+		_elm_lang$html$Html$span,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('bomb-count')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html$text(
+				_user$project$View$padLeftNum(model.numberOfBombs))
+			]));
+};
+var _user$project$View$durationToSeconds = function (_p1) {
+	return _user$project$View$padLeftNum(
 		_elm_lang$core$Basics$round(
 			A3(
 				_elm_lang$core$Basics$flip,
@@ -8569,7 +8589,20 @@ var _user$project$View$durationToSeconds = function (_p0) {
 						return x / y;
 					}),
 				1000,
-				_p0)));
+				_p1)));
+};
+var _user$project$View$timer = function (model) {
+	return A2(
+		_elm_lang$html$Html$span,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('timer')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html$text(
+				_user$project$View$durationToSeconds(model.duration))
+			]));
 };
 var _user$project$View$youWin = function (model) {
 	return A2(
@@ -8606,40 +8639,6 @@ var _user$project$View$youWin = function (model) {
 					[
 						_elm_lang$html$Html$text('Start Again')
 					]))
-			]));
-};
-var _user$project$View$padLeftNum = function (_p1) {
-	return A3(
-		_elm_lang$core$String$padLeft,
-		3,
-		_elm_lang$core$Native_Utils.chr('0'),
-		_elm_lang$core$Basics$toString(_p1));
-};
-var _user$project$View$bombCount = function (model) {
-	return A2(
-		_elm_lang$html$Html$span,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_elm_lang$html$Html_Attributes$class('bomb-count')
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_elm_lang$html$Html$text(
-				_user$project$View$padLeftNum(model.numberOfBombs))
-			]));
-};
-var _user$project$View$timer = function (model) {
-	var elapsed = _elm_lang$core$Basics$round(model.duration / 1000);
-	return A2(
-		_elm_lang$html$Html$span,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_elm_lang$html$Html_Attributes$class('timer')
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_elm_lang$html$Html$text(
-				_user$project$View$padLeftNum(elapsed))
 			]));
 };
 var _user$project$View$startButton = function (model) {

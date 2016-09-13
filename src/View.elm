@@ -59,12 +59,9 @@ bombCount model =
         [ text (padLeftNum model.numberOfBombs) ]
 
 timer model =
-    let
-        elapsed = model.duration / 1000 |> round
-    in
-        span
-            [ class "timer" ]
-            [ text (padLeftNum elapsed) ]
+    span
+        [ class "timer" ]
+        [ text (durationToSeconds model.duration) ]
 
 header: Model -> Html Msg
 header model =
@@ -75,7 +72,7 @@ header model =
         , timer model
         ]
 
-durationToSeconds = (flip (/) 1000) >> round >> toString
+durationToSeconds = (flip (/) 1000) >> round >> padLeftNum
 
 youWin: Model -> Html Msg
 youWin model =
