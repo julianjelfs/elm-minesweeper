@@ -1,12 +1,12 @@
-module Main exposing (..)
+module Main exposing (init, keyBoard, main, timerSub)
 
+import Browser
+import Browser.Events as Events
+import Json.Decode as Decode
+import State
 import Task
-import Html
-import AnimationFrame exposing (diffs)
-import Keyboard
 import Types exposing (..)
 import View
-import State
 
 
 init : ( Model, Cmd Msg )
@@ -17,24 +17,38 @@ init =
 timerSub model =
     case model.state of
         Playing ->
-            diffs Tick
+            Events.onAnimationFrameDelta Tick
 
         _ ->
             Sub.none
 
 
+isCtrl : (Bool -> Msg) -> Decode.Decoder Msg
+isCtrl tag =
+    Decode.map (tag << isCtrlKey) (Decode.field "key" Decode.string)
+
+
+isCtrlKey : String -> Bool
+isCtrlKey =
+    (==) "Control"
+
+
 keyBoard =
-    Sub.batch [ Keyboard.downs KeyDown, Keyboard.ups KeyUp ]
+    Sub.batch
+        [ Events.onKeyDown (isCtrl KeyDown)
+        , Events.onKeyUp (isCtrl KeyUp)
+        ]
 
 
 
---WIRING
+--| WIRING
 
 
+main : Program () Model Msg
 main =
-    Html.program
-        { init = init
+    Browser.element
+        { init = \_ -> init
         , update = State.update
         , view = View.root
-        , subscriptions = (\m -> Sub.batch [ timerSub m, keyBoard ])
+        , subscriptions = \m -> Sub.batch [ timerSub m, keyBoard ]
         }

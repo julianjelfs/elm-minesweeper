@@ -1,11 +1,9 @@
-module Types exposing (..)
+module Types exposing (Cell, CellState(..), Coord, Model, Msg(..), State(..), addBombToGrid, addBombsToGrid, createCell, createGrid, dec, getCell, id, inc, initialModel, nearbyCells, populateNearbyBombs, translate)
 
-import Set
-import Keyboard
-import Time
-import Dict
 import Config exposing (config)
 import Debug exposing (..)
+import Dict
+import Set
 
 
 type alias Cell =
@@ -32,7 +30,7 @@ type State
 
 type alias Model =
     { grid : Dict.Dict Coord Cell
-    , duration : Time.Time
+    , duration : Float
     , state : State
     , ctrl : Bool
     , numberOfBombs : Int
@@ -44,14 +42,17 @@ type alias Coord =
     ( Int, Int )
 
 
+type alias IsCtrl =
+    Bool
+
+
 type Msg
-    = Dummy ()
-    | Positions (Set.Set Coord)
+    = Positions (Set.Set Coord)
     | StartGame
-    | Tick Time.Time
+    | Tick Float
     | ClickedCell Cell
-    | KeyDown Keyboard.KeyCode
-    | KeyUp Keyboard.KeyCode
+    | KeyDown IsCtrl
+    | KeyUp IsCtrl
 
 
 createCell ( x, y ) =
@@ -61,13 +62,13 @@ createCell ( x, y ) =
 createGrid =
     let
         row =
-            (\i -> List.range 0 9 |> List.map (\n -> ( i, n )))
+            \i -> List.range 0 9 |> List.map (\n -> ( i, n ))
 
         keys =
             List.concatMap row (List.range 0 9)
     in
-        keys
-            |> List.foldl (\t d -> Dict.insert t (createCell t) d) Dict.empty
+    keys
+        |> List.foldl (\t d -> Dict.insert t (createCell t) d) Dict.empty
 
 
 initialModel : Model
@@ -108,8 +109,8 @@ nearbyCells grid coord =
         |> List.filterMap (translate grid coord)
 
 
-getCell grid coord =
-    Dict.get coord grid
+getCell =
+    Dict.get
 
 
 translate grid ( x, y ) ( dx, dy ) =
@@ -118,14 +119,7 @@ translate grid ( x, y ) ( dx, dy ) =
 
 addBombToGrid coord grid =
     Dict.update coord
-        (\mc ->
-            case mc of
-                Just c ->
-                    Just { c | bomb = True }
-
-                Nothing ->
-                    Nothing
-        )
+        (Maybe.map (\c -> { c | bomb = True }))
         grid
 
 
@@ -139,7 +133,7 @@ populateNearbyBombs grid =
                         |> List.length
                         |> Just
             in
-                { v | nearbyBombs = nearbyBombs }
+            { v | nearbyBombs = nearbyBombs }
         )
         grid
 

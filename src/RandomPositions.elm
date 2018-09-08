@@ -1,39 +1,33 @@
 module RandomPositions exposing (get)
 
-import Set
+import Config exposing (config)
 import Random
+import Set
 import Task
 import Time
 import Types exposing (..)
-import Config exposing (config)
 
 
-rndPos : Int -> Set.Set Coord -> Random.Seed -> Set.Set Coord
-rndPos n pos seed =
-    let
-        num =
-            Set.size pos
-    in
-        if num == n then
-            pos
-        else
-            let
-                ( x, seed2 ) =
-                    Random.step (Random.int 0 9) seed
+rndPoint : Random.Generator Coord
+rndPoint =
+    Random.pair (Random.int 0 9) (Random.int 0 9)
 
-                ( y, seed3 ) =
-                    Random.step (Random.int 0 9) seed2
-            in
-                rndPos n (Set.insert ( x, y ) pos) seed3
+
+rndSet : Int -> Random.Generator (Set.Set Coord)
+rndSet n =
+    Random.map Set.fromList <| Random.list n rndPoint
+
+
+rndPos : Int -> Random.Seed -> Set.Set Coord
+rndPos n seed =
+    Tuple.first <| Random.step (rndSet n) seed
+
+
+posixToBombs =
+    Time.posixToMillis >> Random.initialSeed >> rndPos config.initialBombs >> Task.succeed
 
 
 get =
     Time.now
-        |> Task.andThen
-            (\t ->
-                round t
-                    |> Random.initialSeed
-                    |> (rndPos config.initialBombs Set.empty)
-                    |> Task.succeed
-            )
+        |> Task.andThen posixToBombs
         |> Task.perform Positions

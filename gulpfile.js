@@ -8,7 +8,7 @@ gulp.task('elm-init', elm.init);
 gulp.task('elm', ['elm-init'], function(){
     return gulp.src('src/*.elm')
         .pipe(plumber())
-        .pipe(elm())
+        .pipe(elm({debug: false, optimize: true}))
         .pipe(gulp.dest('dist'))
         .pipe(livereload());
 });

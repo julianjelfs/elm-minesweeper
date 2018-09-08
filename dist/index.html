@@ -10,9 +10,12 @@
 </head>
 <body>
 <h1 class="title">Minesweeper</h1>
+<div id="elmApp"></div>
 <script type="text/javascript" src="Main.js"></script>
 <script>
-    var app = Elm.Main.fullscreen()
+var app = Elm.Main.init({
+    node: document.getElementById('elmApp')
+})
 </script>
 </body>
 </html>
