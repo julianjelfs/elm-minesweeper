@@ -1,26 +1,16 @@
 {
   "name": "elm-minesweeper",
-  "version": "1.0.0",
-  "description": "This should be a pretty straightforward way to get a bit more elm practice. Need a rest from the difficult multi-player stuff.",
-  "main": "gulpfile.js",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/julianjelfs/elm-minesweeper.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/julianjelfs/elm-minesweeper/issues"
-  },
-  "homepage": "https://github.com/julianjelfs/elm-minesweeper#readme",
   "devDependencies": {
-    "browser-sync": "^3.0.3",
-    "gulp": "^5.0.0",
-    "gulp-elm": "^0.8.2",
-    "gulp-livereload": "^4.0.2",
-    "gulp-plumber": "^1.2.1"
+    "elm": "^0.19.1-6",
+    "vite": "^5.4.1",
+    "vite-plugin-elm": "^3.0.1"
   }
 }
