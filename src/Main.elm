@@ -8,9 +8,9 @@ import Types exposing (..)
 import View
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( initialModel, Cmd.none )
+init : Flags -> ( Model, Cmd Msg )
+init flags =
+    ( initialModel flags, Cmd.none )
 
 
 timerSub : Model -> Sub Msg
@@ -45,10 +45,10 @@ keyBoard =
 --| WIRING
 
 
-main : Program () Model Msg
+main : Program Flags Model Msg
 main =
     Browser.element
-        { init = \_ -> init
+        { init = init
         , update = State.update
         , view = View.root
         , subscriptions = \m -> Sub.batch [ timerSub m, keyBoard ]

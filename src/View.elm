@@ -81,14 +81,16 @@ padLeftNum =
 
 bombCount : Model -> Html Msg
 bombCount model =
-    span [ class "bomb-count" ]
-        [ text (padLeftNum model.numberOfBombs) ]
+    div [ class "bomb-count" ]
+        [ div [ class "bomb-icon" ] [], text (padLeftNum model.numberOfBombs) ]
 
 
 timer : Model -> Html Msg
 timer model =
-    span [ class "timer" ]
-        [ text (durationToSeconds model.duration) ]
+    div [ class "timer" ]
+        [ text (durationToSeconds model.duration)
+        , div [ class "timer-icon" ] []
+        ]
 
 
 header : Model -> Html Msg
@@ -132,8 +134,10 @@ root model =
             [ header model
             , div [ class "grid" ]
                 (List.range 0 (config.dimensions - 1) |> List.map (drawRow model.grid))
-            , div [ class "instructions" ]
-                [ text "Click to reveal a square, Ctrl or Cmd click to flag a square" ]
+            , div [ class "footer" ]
+                [ p [] [ text <| "Hello " ++ model.username ]
+                , p [] [ text "Click to reveal a square, Ctrl or Cmd click to flag a square" ]
+                ]
             ]
         , case model.state of
             Won ->

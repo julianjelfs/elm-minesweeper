@@ -10,20 +10,31 @@ html {
 
 body {
   color: var(--txt);
+  font-family: var(--font-fallback);
+  font-family: var(--font);
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  height: 100dvh;
 }
 .title {
   color: var(--accent);
 }
 
-.instructions,
-.see-code {
-  padding: 24px;
-  border-top: var(--bw) solid var(--bd);
-  text-align: center;
+div[data-elm-hot],
+.container,
+.game-area {
+  height: 100%;
 }
 
-.see-code {
-  margin-top: 10px;
+.footer {
+  padding: 18px;
+  border-top: var(--bw) solid var(--bd);
+  text-align: center;
+  background: var(--bg);
+}
+
+.footer p {
+  margin: 0 0 8px 0;
 }
 
 .container {
@@ -58,14 +69,17 @@ body {
 }
 
 .game-area {
-  background: var(--bg);
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
+  justify-content: space-between;
+  align-items: center;
   padding: 10px;
-  text-align: center;
-  background: var(--section-bg);
   font-weight: bold;
+  background: var(--bg);
+  display: flex;
 }
 
 .start-button {
@@ -95,22 +109,42 @@ body {
 
 .bomb-count,
 .timer {
-  background: #000;
+  display: flex;
+  gap: 16px;
+  background: var(--bg);
   color: var(--accent);
   font-weight: bold;
-  float: left;
   padding: 10px;
   font-size: 1.8em;
-  width: 80px;
 }
 
 .timer {
-  float: right;
+  justify-content: flex-end;
+}
+
+.bomb-icon,
+.timer-icon {
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 50%;
+  background-color: var(--vote-no-color);
+  flex: 0 0 40px;
+  border-radius: var(--rd);
+}
+
+.bomb-icon {
+  background-image: url(bomb.svg);
+}
+
+.timer-icon {
+  background-image: url(timer.svg);
 }
 
 .grid {
   display: flex;
   flex-direction: column;
+  flex: auto;
+  overflow-y: auto;
 }
 
 .row {
@@ -126,6 +160,7 @@ body {
   border-right: var(--bw) solid var(--bd);
   border-top: var(--bw) solid var(--bd);
   cursor: pointer;
+  background-color: var(--primary);
 }
 
 .cell.flagged {
@@ -133,11 +168,11 @@ body {
   background-repeat: no-repeat;
   background-size: 50%;
   background-position: center center;
-  background-color: var(--warn);
+  background-color: var(--error);
 }
 
 .cell.cleared {
-  background-color: var(--vote-yes-color);
+  background-color: var(--bg);
 }
 
 .cell.bomb {

@@ -1,9 +1,14 @@
-module Types exposing (Cell, CellState(..), Coord, Grid, Model, Msg(..), State(..), addBombToGrid, addBombsToGrid, createCell, createGrid, dec, getCell, id, inc, initialModel, nearbyCells, populateNearbyBombs, translate)
+module Types exposing (Cell, CellState(..), Coord, Flags, Grid, Model, Msg(..), State(..), addBombToGrid, addBombsToGrid, createCell, createGrid, dec, getCell, id, inc, initialModel, nearbyCells, populateNearbyBombs, translate)
 
 import Config exposing (config)
 import Debug exposing (..)
 import Dict
 import Set
+
+
+type alias Flags =
+    { username : String
+    }
 
 
 type alias Cell =
@@ -43,6 +48,7 @@ type alias Model =
     , ctrl : Bool
     , numberOfBombs : Int
     , cellClicked : Maybe Coord
+    , username : String
     }
 
 
@@ -81,9 +87,9 @@ createGrid =
         |> List.foldl (\t d -> Dict.insert t (createCell t) d) Dict.empty
 
 
-initialModel : Model
-initialModel =
-    Model createGrid 0 NewGame False config.initialBombs Nothing
+initialModel : Flags -> Model
+initialModel flags =
+    Model createGrid 0 NewGame False config.initialBombs Nothing flags.username
 
 
 inc : Int -> Int

@@ -7,9 +7,9 @@ import RandomPositions
 import Types exposing (..)
 
 
-replaceCell: Cell -> Grid -> Grid
+replaceCell : Cell -> Grid -> Grid
 replaceCell cell grid =
-    Dict.insert (cell.x, cell.y) cell grid
+    Dict.insert ( cell.x, cell.y ) cell grid
 
 
 revealCell : Model -> Grid -> Cell -> Model
@@ -19,6 +19,7 @@ revealCell model grid cell =
             | state = Lost
             , grid = replaceCell { cell | state = Cleared } grid
         }
+
     else
         let
             updatedModel =
@@ -43,6 +44,7 @@ revealCell model grid cell =
             _ ->
                 -- if there are > 0, show that cell
                 updatedModel
+
 
 flagCell : Model -> Cell -> Model
 flagCell model cell =
@@ -78,7 +80,11 @@ update msg model =
     let
         startGame =
             \m c ->
-                ( { initialModel
+                let
+                    init =
+                        initialModel { username = m.username }
+                in
+                ( { init
                     | state = Playing
                     , ctrl = m.ctrl
                     , cellClicked = c
@@ -92,6 +98,7 @@ update msg model =
                     updated =
                         if m.ctrl then
                             flagCell m c
+
                         else
                             revealCell m m.grid c
 
