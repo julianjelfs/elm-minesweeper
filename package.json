@@ -17,9 +17,10 @@
   },
   "homepage": "https://github.com/julianjelfs/elm-minesweeper#readme",
   "devDependencies": {
-    "gulp": "^3.9.1",
-    "gulp-elm": "^0.8.1"
-    "gulp-livereload": "^3.8.1",
-    "gulp-plumber": "^1.1.0"
+    "browser-sync": "^3.0.3",
+    "gulp": "^5.0.0",
+    "gulp-elm": "^0.8.2",
+    "gulp-livereload": "^4.0.2",
+    "gulp-plumber": "^1.2.1"
   }
 }
