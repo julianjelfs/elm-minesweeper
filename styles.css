@@ -1,131 +1,167 @@
 html {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
-*, *:before, *:after {
-    box-sizing: inherit;
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
 }
 
 body {
-    padding:20px;
+  color: var(--txt);
 }
 .title {
-    color:red;
+  color: var(--accent);
 }
 
-.instructions, .see-code {
-    font-style: italic;
-    margin-bottom:10px;
+.instructions,
+.see-code {
+  padding: 24px;
+  border-top: var(--bw) solid var(--bd);
+  text-align: center;
 }
 
 .see-code {
-    margin-top:10px;
+  margin-top: 10px;
 }
 
 .container {
-    position:relative;
+  position: relative;
 }
 
-.you-win {
-    padding:20px;
-    position:absolute;
-    top:220px;
-    margin-left: 100px;
-    width:300px;
-    text-align: center;
-    border:solid 1px #aaa;
-    background: #fff;
-    box-shadow: 5px 5px 5px 0px rgba(170,170,170,1);
+.modal {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
-.you-win div {
-    margin:20px;
-    font-size:1.1em;
+.game-over {
+  padding: 20px;
+  margin: auto 10%;
+  text-align: center;
+  border: solid 1px var(--modal-bd);
+  border-radius: var(--modal-rd);
+  background: var(--modal-bg);
+  box-shadow: var(--modal-sh);
 }
 
-.you-win button {
-    padding:10px;
+.game-over div {
+  margin: 20px;
+  font-size: 1.1em;
 }
 
 .game-area {
-    background: #eee;
-    border:1px solid #ccc;
-    display: inline-block;
+  background: var(--bg);
 }
 
 .header {
-    padding:10px;
-    text-align: center;
-    background:#fff;
-    font-weight:bold;
+  padding: 10px;
+  text-align: center;
+  background: var(--section-bg);
+  font-weight: bold;
 }
 
 .start-button {
-    background:none;
-    color:inherit;
-    cursor:pointer;
-    background-repeat: no-repeat;
-    background-position: center center;
-    width:55px;
-    height:55px;
+  background: var(--button-bg);
+  color: var(--button-txt);
+  cursor: pointer;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 50%;
+  border-radius: var(--rd);
+  width: 55px;
+  height: 55px;
+  border: none;
+  transition: background ease-in-out 200ms, color ease-in-out 200ms;
+}
+.start-button:hover {
+  background-color: var(--button-hv);
 }
 
 .start-button.happy {
-    background-image: url(happy.png);
+  background-image: url(happy.svg);
 }
 
 .start-button.sad {
-    background-image: url(sad.png);
+  background-image: url(sad.svg);
 }
 
-.bomb-count, .timer {
-    background:#000;
-    color:#ff0000;
-    font-weight: bold;
-    float:left;
-    padding:10px;
-    font-size:1.8em;
-    width:80px;
+.bomb-count,
+.timer {
+  background: #000;
+  color: var(--accent);
+  font-weight: bold;
+  float: left;
+  padding: 10px;
+  font-size: 1.8em;
+  width: 80px;
 }
 
 .timer {
-    float:right;
+  float: right;
 }
 
 .grid {
-    width:500px;
-    height:500px;
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
 }
 
 .cell {
-    float:left;
-    width: 50px;
-    height: 50px;
-    text-align: center;
-    padding-top: 15px;
-    border-right: 1px solid #ccc;
-    border-top: 1px solid #ccc;
-    cursor: pointer;
+  flex: 1;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-right: var(--bw) solid var(--bd);
+  border-top: var(--bw) solid var(--bd);
+  cursor: pointer;
 }
 
 .cell.flagged {
-    background-image: url(flag.png);
-    background-repeat:no-repeat;
-    background-position: center center;
-    background-color: #fefefe;
+  background-image: url(flag.svg);
+  background-repeat: no-repeat;
+  background-size: 50%;
+  background-position: center center;
+  background-color: var(--warn);
 }
 
 .cell.cleared {
-    background-color: #fff;
+  background-color: var(--vote-yes-color);
 }
 
 .cell.bomb {
-    background-image: url(bomb.png);
-    background-repeat:no-repeat;
-    background-position: center center;
+  background-image: url(bomb.svg);
+  background-repeat: no-repeat;
+  background-size: 50%;
+  background-position: center center;
+  background-color: var(--vote-no-color);
 }
 
 .cell:last-child {
-    border-right: none;
+  border-right: none;
 }
 
+.btn {
+  border: none;
+  padding: 16px 32px;
+  background-color: var(--button-bg);
+  color: var(--button-txt);
+  cursor: pointer;
+  transition: background ease-in-out 200ms, color ease-in-out 200ms;
+  border-radius: var(--rd);
+}
+
+.btn:hover {
+  background-color: var(--button-hv);
+}

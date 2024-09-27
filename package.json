@@ -12,5 +12,8 @@
     "elm": "^0.19.1-6",
     "vite": "^5.4.1",
     "vite-plugin-elm": "^3.0.1"
+  },
+  "dependencies": {
+    "@open-ic/openchat-embed": "^1.0.1"
   }
 }

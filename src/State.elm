@@ -7,44 +7,44 @@ import RandomPositions
 import Types exposing (..)
 
 
+replaceCell: Cell -> Grid -> Grid
 replaceCell cell grid =
-    Dict.update ( cell.x, cell.y ) (Maybe.map (\c -> cell)) grid
+    Dict.insert (cell.x, cell.y) cell grid
 
 
+revealCell : Model -> Grid -> Cell -> Model
 revealCell model grid cell =
-    case cell.bomb of
-        True ->
-            { model
-                | state = Lost
-                , grid = grid |> replaceCell { cell | state = Cleared }
-            }
+    if cell.bomb then
+        { model
+            | state = Lost
+            , grid = replaceCell { cell | state = Cleared } grid
+        }
+    else
+        let
+            updatedModel =
+                { model
+                    | grid =
+                        replaceCell { cell | state = Cleared } grid
+                }
+        in
+        case cell.nearbyBombs of
+            Just 0 ->
+                -- if there are 0, show that cell and reveal all surrounding cells
+                let
+                    nearby =
+                        nearbyCells updatedModel.grid ( cell.x, cell.y )
+                            |> List.filter (\c -> c.state == Hidden)
 
-        False ->
-            let
-                updatedModel =
-                    { model
-                        | grid =
-                            grid |> replaceCell { cell | state = Cleared }
-                    }
-            in
-            case cell.nearbyBombs of
-                Just 0 ->
-                    -- if there are 0, show that cell and reveal all surrounding cells
-                    let
-                        nearby =
-                            nearbyCells updatedModel.grid ( cell.x, cell.y )
-                                |> List.filter (\c -> c.state == Hidden)
+                    grid_ =
+                        List.foldl (\c g -> revealCell model g c |> .grid) updatedModel.grid nearby
+                in
+                { updatedModel | grid = grid_ }
 
-                        grid_ =
-                            List.foldl (\c g -> revealCell model g c |> .grid) updatedModel.grid nearby
-                    in
-                    { updatedModel | grid = grid_ }
+            _ ->
+                -- if there are > 0, show that cell
+                updatedModel
 
-                _ ->
-                    -- if there are > 0, show that cell
-                    updatedModel
-
-
+flagCell : Model -> Cell -> Model
 flagCell model cell =
     let
         changeState =
@@ -90,12 +90,10 @@ update msg model =
             \m c ->
                 let
                     updated =
-                        case m.ctrl of
-                            True ->
-                                flagCell m c
-
-                            False ->
-                                revealCell m m.grid c
+                        if m.ctrl then
+                            flagCell m c
+                        else
+                            revealCell m m.grid c
 
                     won =
                         (updated.state == Playing)

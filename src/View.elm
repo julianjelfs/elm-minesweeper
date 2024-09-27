@@ -1,5 +1,7 @@
 module View exposing (root)
 
+import Button
+import Config exposing (config)
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -8,6 +10,7 @@ import String exposing (padLeft)
 import Types exposing (..)
 
 
+drawCell : Dict.Dict Coord Cell -> Int -> Int -> Html Msg
 drawCell grid y x =
     case Dict.get ( x, y ) grid of
         Just cell ->
@@ -21,22 +24,21 @@ drawCell grid y x =
                             ( "cell flagged", "" )
 
                         Cleared ->
-                            case cell.bomb of
-                                True ->
-                                    ( "cell cleared bomb", "" )
+                            if cell.bomb then
+                                ( "cell cleared bomb", "" )
 
-                                False ->
-                                    ( "cell cleared"
-                                    , case cell.nearbyBombs of
-                                        Nothing ->
-                                            ""
+                            else
+                                ( "cell cleared"
+                                , case cell.nearbyBombs of
+                                    Nothing ->
+                                        ""
 
-                                        Just 0 ->
-                                            ""
+                                    Just 0 ->
+                                        ""
 
-                                        Just n ->
-                                            String.fromInt n
-                                    )
+                                    Just n ->
+                                        String.fromInt n
+                                )
             in
             div
                 [ class cls
@@ -48,11 +50,13 @@ drawCell grid y x =
             div [] []
 
 
+drawRow : Dict.Dict Coord Cell -> Int -> Html Msg
 drawRow grid y =
     div [ class "row" ]
-        (List.range 0 9 |> List.map (drawCell grid y))
+        (List.range 0 (config.dimensions - 1) |> List.map (drawCell grid y))
 
 
+startButton : Model -> Html Msg
 startButton model =
     let
         cls =
@@ -70,15 +74,18 @@ startButton model =
         []
 
 
+padLeftNum : Int -> String
 padLeftNum =
     String.fromInt >> padLeft 3 '0'
 
 
+bombCount : Model -> Html Msg
 bombCount model =
     span [ class "bomb-count" ]
         [ text (padLeftNum model.numberOfBombs) ]
 
 
+timer : Model -> Html Msg
 timer model =
     span [ class "timer" ]
         [ text (durationToSeconds model.duration) ]
@@ -93,41 +100,47 @@ header model =
         ]
 
 
+durationToSeconds : Float -> String
 durationToSeconds =
-    (\a -> (/) a 1000) >> round >> padLeftNum
+    (\a -> a / 1000) >> round >> padLeftNum
 
 
 youWin : Model -> Html Msg
 youWin model =
-    div [ class "you-win" ]
-        [ div [] [ text ("Congratulations! You won in " ++ (model.duration |> durationToSeconds) ++ " seconds") ]
-        , button
-            [ class "restart"
-            , onClick StartGame
+    div [ class "modal" ]
+        [ div [ class "game-over" ]
+            [ div [] [ text ("Congratulations! You won in " ++ (model.duration |> durationToSeconds) ++ " seconds") ]
+            , Button.button "Start Again" StartGame
             ]
-            [ text "Start Again" ]
+        ]
+
+
+youLose : Html Msg
+youLose =
+    div [ class "modal" ]
+        [ div [ class "game-over" ]
+            [ div [] [ text "Sorry you lost - come on it's not that hard" ]
+            , Button.button "Try Again" StartGame
+            ]
         ]
 
 
 root : Model -> Html Msg
 root model =
     div [ class "container" ]
-        [ div [ class "instructions" ]
-            [ text "Click to reveal a square, Ctrl-click to flag a square" ]
-        , div [ class "game-area" ]
+        [ div [ class "game-area" ]
             [ header model
             , div [ class "grid" ]
-                (List.range 0 9 |> List.map (drawRow model.grid))
-            ]
-        , div [ class "see-code" ]
-            [ span []
-                [ text "See the code "
-                , a [ target "_blank", href "https://github.com/julianjelfs/elm-minesweeper" ] [ text "here" ]
-                ]
+                (List.range 0 (config.dimensions - 1) |> List.map (drawRow model.grid))
+            , div [ class "instructions" ]
+                [ text "Click to reveal a square, Ctrl or Cmd click to flag a square" ]
             ]
         , case model.state of
             Won ->
                 youWin model
+
+            Lost ->
+                youLose
 
             _ ->
                 div [] []

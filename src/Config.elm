@@ -1,7 +1,12 @@
-module Config exposing (config)
+module Config exposing (..)
 
 
+type alias Config =
+    { dimensions : Int, initialBombs : Int }
+
+
+config : Config
 config =
-    { dimensions = 10
-    , initialBombs = 15
+    { dimensions = 20
+    , initialBombs = 50
     }

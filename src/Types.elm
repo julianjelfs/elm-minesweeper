@@ -1,4 +1,4 @@
-module Types exposing (Cell, CellState(..), Coord, Model, Msg(..), State(..), addBombToGrid, addBombsToGrid, createCell, createGrid, dec, getCell, id, inc, initialModel, nearbyCells, populateNearbyBombs, translate)
+module Types exposing (Cell, CellState(..), Coord, Grid, Model, Msg(..), State(..), addBombToGrid, addBombsToGrid, createCell, createGrid, dec, getCell, id, inc, initialModel, nearbyCells, populateNearbyBombs, translate)
 
 import Config exposing (config)
 import Debug exposing (..)
@@ -28,8 +28,16 @@ type State
     | Lost
 
 
+type alias Grid =
+    Dict.Dict Coord Cell
+
+
+type alias CoordModifier =
+    Int -> Int
+
+
 type alias Model =
-    { grid : Dict.Dict Coord Cell
+    { grid : Grid
     , duration : Float
     , state : State
     , ctrl : Bool
@@ -55,17 +63,19 @@ type Msg
     | KeyUp IsCtrl
 
 
+createCell : ( Int, Int ) -> Cell
 createCell ( x, y ) =
     Cell x y Hidden False Nothing
 
 
+createGrid : Grid
 createGrid =
     let
         row =
-            \i -> List.range 0 9 |> List.map (\n -> ( i, n ))
+            \i -> List.range 0 (config.dimensions - 1) |> List.map (\n -> ( i, n ))
 
         keys =
-            List.concatMap row (List.range 0 9)
+            List.concatMap row (List.range 0 (config.dimensions - 1))
     in
     keys
         |> List.foldl (\t d -> Dict.insert t (createCell t) d) Dict.empty
@@ -76,14 +86,17 @@ initialModel =
     Model createGrid 0 NewGame False config.initialBombs Nothing
 
 
+inc : Int -> Int
 inc x =
     x + 1
 
 
+dec : Int -> Int
 dec x =
     x - 1
 
 
+id : x -> x
 id x =
     x
 
@@ -96,6 +109,7 @@ id x =
 --}
 
 
+nearbyCells : Grid -> Coord -> List Cell
 nearbyCells grid coord =
     [ ( dec, dec )
     , ( dec, id )
@@ -109,20 +123,23 @@ nearbyCells grid coord =
         |> List.filterMap (translate grid coord)
 
 
+getCell : Coord -> Grid -> Maybe Cell
 getCell =
     Dict.get
 
 
+translate : Grid -> Coord -> ( CoordModifier, CoordModifier ) -> Maybe Cell
 translate grid ( x, y ) ( dx, dy ) =
     Dict.get ( dx x, dy y ) grid
 
 
-addBombToGrid coord grid =
+addBombToGrid : Coord -> Grid -> Grid
+addBombToGrid coord =
     Dict.update coord
         (Maybe.map (\c -> { c | bomb = True }))
-        grid
 
 
+populateNearbyBombs : Grid -> Grid
 populateNearbyBombs grid =
     Dict.map
         (\k v ->
@@ -138,6 +155,7 @@ populateNearbyBombs grid =
         grid
 
 
+addBombsToGrid : Set.Set Coord -> Grid -> Grid
 addBombsToGrid pos grid =
     Set.foldl addBombToGrid grid pos
         |> populateNearbyBombs

@@ -4,7 +4,6 @@ import Browser
 import Browser.Events as Events
 import Json.Decode as Decode
 import State
-import Task
 import Types exposing (..)
 import View
 
@@ -14,6 +13,7 @@ init =
     ( initialModel, Cmd.none )
 
 
+timerSub : Model -> Sub Msg
 timerSub model =
     case model.state of
         Playing ->
@@ -33,6 +33,7 @@ isCtrlKey =
     (==) "Control"
 
 
+keyBoard : Sub Msg
 keyBoard =
     Sub.batch
         [ Events.onKeyDown (isCtrl KeyDown)
