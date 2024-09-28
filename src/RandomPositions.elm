@@ -1,6 +1,5 @@
 module RandomPositions exposing (get)
 
-import Config exposing (config)
 import Random
 import Set
 import Task
@@ -8,13 +7,13 @@ import Time
 import Types exposing (..)
 
 
-rndPoint : Random.Generator Coord
-rndPoint =
+rndPoint : Config -> Random.Generator Coord
+rndPoint config =
     Random.pair (Random.int 0 (config.dimensions - 1)) (Random.int 0 (config.dimensions - 1))
 
 
-rndSet : Int -> Random.Generator (Set.Set Coord)
-rndSet n =
+rndSet : Config -> Random.Generator (Set.Set Coord)
+rndSet config =
     let
         addUniquePoints : Int -> Set.Set Coord -> Random.Generator (Set.Set Coord)
         addUniquePoints remaining set =
@@ -30,23 +29,23 @@ rndSet n =
                         else
                             addUniquePoints (remaining - 1) (Set.insert p set)
                     )
-                    rndPoint
+                    (rndPoint config)
     in
-    addUniquePoints n Set.empty
+    addUniquePoints config.initialBombs Set.empty
 
 
-rndPos : Int -> Random.Seed -> Set.Set Coord
-rndPos n seed =
-    Tuple.first <| Random.step (rndSet n) seed
+rndPos : Config -> Random.Seed -> Set.Set Coord
+rndPos config seed =
+    Tuple.first <| Random.step (rndSet config) seed
 
 
-posixToBombs : Time.Posix -> Task.Task never (Set.Set Coord)
-posixToBombs =
-    Time.posixToMillis >> Random.initialSeed >> rndPos config.initialBombs >> Task.succeed
+posixToBombs : Config -> Time.Posix -> Task.Task never (Set.Set Coord)
+posixToBombs config =
+    Time.posixToMillis >> Random.initialSeed >> rndPos config >> Task.succeed
 
 
-get : Cmd Msg
-get =
+get : Config -> Cmd Msg
+get config =
     Time.now
-        |> Task.andThen posixToBombs
+        |> Task.andThen (posixToBombs config)
         |> Task.perform Positions

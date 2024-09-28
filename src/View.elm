@@ -1,7 +1,6 @@
 module View exposing (root)
 
 import Button
-import Config exposing (config)
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -50,10 +49,28 @@ drawCell grid y x =
             div [] []
 
 
-drawRow : Dict.Dict Coord Cell -> Int -> Html Msg
-drawRow grid y =
+drawRow : Config -> Dict.Dict Coord Cell -> Int -> Html Msg
+drawRow config grid y =
     div [ class "row" ]
         (List.range 0 (config.dimensions - 1) |> List.map (drawCell grid y))
+
+
+levelName : Level -> String
+levelName level =
+    case level of
+        Easy ->
+            "Easy"
+
+        Normal ->
+            "Normal"
+
+        Hard ->
+            "Hard"
+
+
+levelToggle : Model -> Html Msg
+levelToggle model =
+    Button.button (levelName model.level) ToggleLevel
 
 
 startButton : Model -> Html Msg
@@ -98,6 +115,7 @@ header model =
     div [ class "header" ]
         [ bombCount model
         , startButton model
+        , levelToggle model
         , timer model
         ]
 
@@ -133,7 +151,7 @@ root model =
         [ div [ class "game-area" ]
             [ header model
             , div [ class "grid" ]
-                (List.range 0 (config.dimensions - 1) |> List.map (drawRow model.grid))
+                (List.range 0 (model.config.dimensions - 1) |> List.map (drawRow model.config model.grid))
             , div [ class "footer" ]
                 [ p [] [ text <| "Hello " ++ model.username ]
                 , p [] [ text "Click to reveal a square, Ctrl or Cmd click to flag a square" ]

@@ -1,9 +1,9 @@
 module State exposing (update)
 
-import Config exposing (config)
 import Debug exposing (log)
 import Dict
 import RandomPositions
+import Task
 import Types exposing (..)
 
 
@@ -75,23 +75,24 @@ noHiddenCells =
     Dict.filter (\k v -> v.state == Hidden) >> Dict.isEmpty
 
 
+startGame : Model -> Maybe Coord -> ( Model, Cmd Msg )
+startGame model coord =
+    let
+        init =
+            initialModel { username = model.username } model.level
+    in
+    ( { init
+        | state = Playing
+        , ctrl = model.ctrl
+        , cellClicked = coord
+      }
+    , RandomPositions.get init.config
+    )
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        startGame =
-            \m c ->
-                let
-                    init =
-                        initialModel { username = m.username }
-                in
-                ( { init
-                    | state = Playing
-                    , ctrl = m.ctrl
-                    , cellClicked = c
-                  }
-                , RandomPositions.get
-                )
-
         handleClick =
             \m c ->
                 let
@@ -146,8 +147,23 @@ update msg model =
                 _ ->
                     startGame model (Just ( cell.x, cell.y ))
 
-        KeyDown isCtrl ->
+        KeyDown _ ->
             ( { model | ctrl = True }, Cmd.none )
 
-        KeyUp isCtrl ->
+        KeyUp _ ->
             ( { model | ctrl = False }, Cmd.none )
+
+        ToggleLevel ->
+            let
+                level =
+                    case model.level of
+                        Easy ->
+                            Normal
+
+                        Normal ->
+                            Hard
+
+                        Hard ->
+                            Easy
+            in
+            startGame { model | level = level } Nothing

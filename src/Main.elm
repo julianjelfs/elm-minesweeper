@@ -10,7 +10,7 @@ import View
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( initialModel flags, Cmd.none )
+    ( initialModel flags Normal, Cmd.none )
 
 
 timerSub : Model -> Sub Msg

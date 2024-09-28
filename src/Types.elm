@@ -1,9 +1,12 @@
-module Types exposing (Cell, CellState(..), Coord, Flags, Grid, Model, Msg(..), State(..), addBombToGrid, addBombsToGrid, createCell, createGrid, dec, getCell, id, inc, initialModel, nearbyCells, populateNearbyBombs, translate)
+module Types exposing (Cell, CellState(..), Config, Coord, Flags, Grid, Level(..), Model, Msg(..), State(..), addBombToGrid, addBombsToGrid, createCell, createGrid, dec, getCell, getConfig, id, inc, initialModel, nearbyCells, populateNearbyBombs, translate)
 
-import Config exposing (config)
 import Debug exposing (..)
 import Dict
 import Set
+
+
+type alias Config =
+    { dimensions : Int, initialBombs : Int }
 
 
 type alias Flags =
@@ -41,6 +44,12 @@ type alias CoordModifier =
     Int -> Int
 
 
+type Level
+    = Easy
+    | Normal
+    | Hard
+
+
 type alias Model =
     { grid : Grid
     , duration : Float
@@ -49,6 +58,8 @@ type alias Model =
     , numberOfBombs : Int
     , cellClicked : Maybe Coord
     , username : String
+    , config : Config
+    , level : Level
     }
 
 
@@ -67,6 +78,7 @@ type Msg
     | ClickedCell Cell
     | KeyDown IsCtrl
     | KeyUp IsCtrl
+    | ToggleLevel
 
 
 createCell : ( Int, Int ) -> Cell
@@ -74,8 +86,8 @@ createCell ( x, y ) =
     Cell x y Hidden False Nothing
 
 
-createGrid : Grid
-createGrid =
+createGrid : Config -> Grid
+createGrid config =
     let
         row =
             \i -> List.range 0 (config.dimensions - 1) |> List.map (\n -> ( i, n ))
@@ -87,9 +99,13 @@ createGrid =
         |> List.foldl (\t d -> Dict.insert t (createCell t) d) Dict.empty
 
 
-initialModel : Flags -> Model
-initialModel flags =
-    Model createGrid 0 NewGame False config.initialBombs Nothing flags.username
+initialModel : Flags -> Level -> Model
+initialModel flags level =
+    let
+        config =
+            getConfig level
+    in
+    Model (createGrid config) 0 NewGame False config.initialBombs Nothing flags.username config level
 
 
 inc : Int -> Int
@@ -165,3 +181,18 @@ addBombsToGrid : Set.Set Coord -> Grid -> Grid
 addBombsToGrid pos grid =
     Set.foldl addBombToGrid grid pos
         |> populateNearbyBombs
+
+
+getConfig : Level -> Config
+getConfig level =
+    case level of
+        Easy ->
+            { dimensions = 9, initialBombs = 10 }
+
+        Normal ->
+            { dimensions = 16, initialBombs = 40 }
+
+        Hard ->
+            { dimensions = 40
+            , initialBombs = 200
+            }
