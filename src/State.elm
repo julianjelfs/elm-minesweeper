@@ -2,6 +2,7 @@ module State exposing (update)
 
 import Debug exposing (log)
 import Dict
+import Ports
 import RandomPositions
 import Task
 import Types exposing (..)
@@ -79,14 +80,17 @@ startGame : Model -> Maybe Coord -> ( Model, Cmd Msg )
 startGame model coord =
     let
         init =
-            initialModel { username = model.username } model.level
+            initialModel { username = model.username, level = model.level }
     in
     ( { init
         | state = Playing
         , ctrl = model.ctrl
         , cellClicked = coord
       }
-    , RandomPositions.get init.config
+    , Cmd.batch
+        [ RandomPositions.get init.config
+        , Ports.updateLevel (levelToInt model.level)
+        ]
     )
 
 
@@ -164,6 +168,9 @@ update msg model =
                             Hard
 
                         Hard ->
+                            Hardcore
+
+                        Hardcore ->
                             Easy
             in
             startGame { model | level = level } Nothing

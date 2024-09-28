@@ -52,7 +52,7 @@ drawCell grid y x =
 drawRow : Config -> Dict.Dict Coord Cell -> Int -> Html Msg
 drawRow config grid y =
     div [ class "row" ]
-        (List.range 0 (config.dimensions - 1) |> List.map (drawCell grid y))
+        (List.range 0 (config.dimensions.columns - 1) |> List.map (drawCell grid y))
 
 
 levelName : Level -> String
@@ -66,6 +66,9 @@ levelName level =
 
         Hard ->
             "Hard"
+
+        Hardcore ->
+            "Hardcore"
 
 
 levelToggle : Model -> Html Msg
@@ -105,18 +108,22 @@ bombCount model =
 timer : Model -> Html Msg
 timer model =
     div [ class "timer" ]
-        [ text (durationToSeconds model.duration)
-        , div [ class "timer-icon" ] []
+        [ div [ class "timer-icon" ] []
+        , text (durationToSeconds model.duration)
         ]
 
 
 header : Model -> Html Msg
 header model =
     div [ class "header" ]
-        [ bombCount model
-        , startButton model
-        , levelToggle model
-        , timer model
+        [ div [ class "left" ]
+            [ startButton model
+            , levelToggle model
+            ]
+        , div [ class "right" ]
+            [ bombCount model
+            , timer model
+            ]
         ]
 
 
@@ -148,10 +155,18 @@ youLose =
 root : Model -> Html Msg
 root model =
     div [ class "container" ]
-        [ div [ class "game-area" ]
+        [ div
+            [ class "game-area"
+            , classList
+                [ ( "easy", model.level == Easy )
+                , ( "normal", model.level == Normal )
+                , ( "hard", model.level == Hard )
+                , ( "hardcore", model.level == Hardcore )
+                ]
+            ]
             [ header model
             , div [ class "grid" ]
-                (List.range 0 (model.config.dimensions - 1) |> List.map (drawRow model.config model.grid))
+                (List.range 0 (model.config.dimensions.rows - 1) |> List.map (drawRow model.config model.grid))
             , div [ class "footer" ]
                 [ p [] [ text <| "Hello " ++ model.username ]
                 , p [] [ text "Click to reveal a square, Ctrl or Cmd click to flag a square" ]

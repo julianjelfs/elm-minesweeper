@@ -1,4 +1,29 @@
-module Types exposing (Cell, CellState(..), Config, Coord, Flags, Grid, Level(..), Model, Msg(..), State(..), addBombToGrid, addBombsToGrid, createCell, createGrid, dec, getCell, getConfig, id, inc, initialModel, nearbyCells, populateNearbyBombs, translate)
+module Types exposing
+    ( Cell
+    , CellState(..)
+    , Config
+    , Coord
+    , Flags
+    , Grid
+    , Level(..)
+    , Model
+    , Msg(..)
+    , State(..)
+    , addBombToGrid
+    , addBombsToGrid
+    , createCell
+    , createGrid
+    , dec
+    , getCell
+    , getConfig
+    , id
+    , inc
+    , initialModel
+    , levelToInt
+    , nearbyCells
+    , populateNearbyBombs
+    , translate
+    )
 
 import Debug exposing (..)
 import Dict
@@ -6,11 +31,12 @@ import Set
 
 
 type alias Config =
-    { dimensions : Int, initialBombs : Int }
+    { dimensions : { rows : Int, columns : Int }, initialBombs : Int }
 
 
 type alias Flags =
     { username : String
+    , level : Level
     }
 
 
@@ -48,6 +74,23 @@ type Level
     = Easy
     | Normal
     | Hard
+    | Hardcore
+
+
+levelToInt : Level -> Int
+levelToInt level =
+    case level of
+        Easy ->
+            0
+
+        Normal ->
+            1
+
+        Hard ->
+            2
+
+        Hardcore ->
+            3
 
 
 type alias Model =
@@ -90,22 +133,22 @@ createGrid : Config -> Grid
 createGrid config =
     let
         row =
-            \i -> List.range 0 (config.dimensions - 1) |> List.map (\n -> ( i, n ))
+            \c -> List.range 0 (config.dimensions.rows - 1) |> List.map (\r -> ( c, r ))
 
         keys =
-            List.concatMap row (List.range 0 (config.dimensions - 1))
+            List.concatMap row (List.range 0 (config.dimensions.columns - 1))
     in
     keys
         |> List.foldl (\t d -> Dict.insert t (createCell t) d) Dict.empty
 
 
-initialModel : Flags -> Level -> Model
-initialModel flags level =
+initialModel : Flags -> Model
+initialModel flags =
     let
         config =
-            getConfig level
+            getConfig flags.level
     in
-    Model (createGrid config) 0 NewGame False config.initialBombs Nothing flags.username config level
+    Model (createGrid config) 0 NewGame False config.initialBombs Nothing flags.username config flags.level
 
 
 inc : Int -> Int
@@ -187,12 +230,17 @@ getConfig : Level -> Config
 getConfig level =
     case level of
         Easy ->
-            { dimensions = 9, initialBombs = 10 }
+            { dimensions = { rows = 8, columns = 12 }, initialBombs = 10 }
 
         Normal ->
-            { dimensions = 16, initialBombs = 40 }
+            { dimensions = { rows = 12, columns = 18 }, initialBombs = 40 }
 
         Hard ->
-            { dimensions = 40
+            { dimensions = { rows = 28, columns = 40 }
             , initialBombs = 200
+            }
+
+        Hardcore ->
+            { dimensions = { rows = 48, columns = 70 }
+            , initialBombs = 400
             }

@@ -9,7 +9,7 @@ import Types exposing (..)
 
 rndPoint : Config -> Random.Generator Coord
 rndPoint config =
-    Random.pair (Random.int 0 (config.dimensions - 1)) (Random.int 0 (config.dimensions - 1))
+    Random.pair (Random.int 0 (config.dimensions.columns - 1)) (Random.int 0 (config.dimensions.rows - 1))
 
 
 rndSet : Config -> Random.Generator (Set.Set Coord)

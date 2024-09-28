@@ -45,6 +45,7 @@ div[data-elm-hot],
 .container,
 .game-area {
   height: 100%;
+  user-select: none;
 }
 
 .footer {
@@ -95,12 +96,27 @@ div[data-elm-hot],
 }
 
 .header {
+  display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px;
   font-weight: bold;
   background: var(--bg);
+}
+
+.header .left,
+.header .right {
   display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.header .left {
+  justify-content: flex-start;
+}
+
+.header .right {
+  justify-content: flex-end;
 }
 
 .start-button {
@@ -112,7 +128,7 @@ div[data-elm-hot],
   background-size: 50%;
   border-radius: var(--rd);
   width: 55px;
-  height: 55px;
+  height: 50px;
   border: none;
   transition: background ease-in-out 200ms, color ease-in-out 200ms;
 }
@@ -137,6 +153,7 @@ div[data-elm-hot],
   font-weight: bold;
   padding: 10px;
   font-size: 1.8em;
+  flex: 0 0 150px;
 }
 
 .timer {
@@ -182,6 +199,22 @@ div[data-elm-hot],
   border-top: var(--bw) solid var(--bd);
   cursor: pointer;
   background-color: var(--primary);
+}
+
+.easy .cell {
+  font-size: 24px;
+}
+
+.normal .cell {
+  font-size: 18px;
+}
+
+.hard .cell {
+  font-size: 10px;
+}
+
+.hardcore .cell {
+  font-size: 9px;
 }
 
 .cell.flagged {
