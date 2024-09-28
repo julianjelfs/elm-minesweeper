@@ -137,11 +137,11 @@ div[data-elm-hot],
 }
 
 .start-button.happy {
-  background-image: url(happy.svg);
+  background-image: url(/happy.svg);
 }
 
 .start-button.sad {
-  background-image: url(sad.svg);
+  background-image: url(/sad.svg);
 }
 
 .bomb-count,
@@ -171,11 +171,11 @@ div[data-elm-hot],
 }
 
 .bomb-icon {
-  background-image: url(bomb.svg);
+  background-image: url(/bomb.svg);
 }
 
 .timer-icon {
-  background-image: url(timer.svg);
+  background-image: url(/timer.svg);
 }
 
 .grid {
@@ -218,7 +218,7 @@ div[data-elm-hot],
 }
 
 .cell.flagged {
-  background-image: url(flag.svg);
+  background-image: url(/flag.svg);
   background-repeat: no-repeat;
   background-size: 50%;
   background-position: center center;
@@ -230,7 +230,7 @@ div[data-elm-hot],
 }
 
 .cell.bomb {
-  background-image: url(bomb.svg);
+  background-image: url(/bomb.svg);
   background-repeat: no-repeat;
   background-size: 50%;
   background-position: center center;
