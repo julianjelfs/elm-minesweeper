@@ -8,6 +8,27 @@ html {
   box-sizing: inherit;
 }
 
+:root {
+  --txt: #242834;
+  --font: "Roboto", sans-serif;
+  --accent: hotpink;
+  --vh: 100%;
+  --bw: 1px;
+  --bd: #ccc;
+  --bg: white;
+  --modal-bd: #ccc;
+  --modal-rd: 8px;
+  --modal-bg: white;
+  --modal-sh: none;
+  --button-bg: rgb(0, 149, 255);
+  --button-hv: rgb(13, 97, 157);
+  --button-txt: white;
+  --rd: 4px;
+  --vote-no-color: red;
+  --primary: rgb(13, 161, 235);
+  --error: rgb(255, 132, 0);
+}
+
 body {
   color: var(--txt);
   font-family: var(--font-fallback);
