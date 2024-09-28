@@ -6,4 +6,5 @@ export default defineConfig({
   build: {
     outDir: "dist", // Adjust based on your project structure
   },
+  base: "/elm-minesweeper/dist/",
 });
