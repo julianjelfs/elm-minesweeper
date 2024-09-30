@@ -3,6 +3,7 @@ module Types exposing
     , CellState(..)
     , Config
     , Coord
+    , Dimensions
     , Flags
     , Grid
     , Level(..)
@@ -31,13 +32,23 @@ import Set
 
 
 type alias Config =
-    { dimensions : { rows : Int, columns : Int }, initialBombs : Int }
+    { dimensions : { rows : Int, columns : Int }, initialBombs : Int, cellSize : Float }
 
 
 type alias Flags =
     { username : String
     , level : Level
+    , dimensions : Dimensions
     }
+
+
+
+-- this is not right because the height needs to be just the height of the game-area not the whole window
+-- which means that we need to measure it in Elm land *before* we have rendered the grid
+
+
+type alias Dimensions =
+    { width : Float, height : Float }
 
 
 type alias Cell =
@@ -103,6 +114,7 @@ type alias Model =
     , username : String
     , config : Config
     , level : Level
+    , dimensions : Dimensions
     }
 
 
@@ -146,9 +158,9 @@ initialModel : Flags -> Model
 initialModel flags =
     let
         config =
-            getConfig flags.level
+            getConfig flags.dimensions flags.level
     in
-    Model (createGrid config) 0 NewGame False config.initialBombs Nothing flags.username config flags.level
+    Model (createGrid config) 0 NewGame False config.initialBombs Nothing flags.username config flags.level flags.dimensions
 
 
 inc : Int -> Int
@@ -226,21 +238,50 @@ addBombsToGrid pos grid =
         |> populateNearbyBombs
 
 
-getConfig : Level -> Config
-getConfig level =
+getConfig : Dimensions -> Level -> Config
+getConfig dimensions level =
+    let
+        numRows : Float -> Int
+        numRows size =
+            floor <| dimensions.height / size
+    in
     case level of
         Easy ->
-            { dimensions = { rows = 8, columns = 12 }, initialBombs = 10 }
+            let
+                size =
+                    dimensions.width / 12
+            in
+            { dimensions = { rows = numRows size, columns = 12 }
+            , initialBombs = 10
+            , cellSize = size
+            }
 
         Normal ->
-            { dimensions = { rows = 12, columns = 18 }, initialBombs = 40 }
+            let
+                size =
+                    dimensions.width / 18
+            in
+            { dimensions = { rows = numRows size, columns = 18 }
+            , initialBombs = 40
+            , cellSize = size
+            }
 
         Hard ->
-            { dimensions = { rows = 28, columns = 40 }
+            let
+                size =
+                    dimensions.width / 40
+            in
+            { dimensions = { rows = numRows size, columns = 40 }
             , initialBombs = 200
+            , cellSize = size
             }
 
         Hardcore ->
-            { dimensions = { rows = 48, columns = 70 }
+            let
+                size =
+                    dimensions.width / 70
+            in
+            { dimensions = { rows = numRows size, columns = 70 }
             , initialBombs = 400
+            , cellSize = size
             }

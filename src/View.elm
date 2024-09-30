@@ -3,14 +3,14 @@ module View exposing (root)
 import Button
 import Dict
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
 import String exposing (padLeft)
 import Types exposing (..)
 
 
-drawCell : Dict.Dict Coord Cell -> Int -> Int -> Html Msg
-drawCell grid y x =
+drawCell : Config -> Dict.Dict Coord Cell -> Int -> Int -> Html Msg
+drawCell config grid y x =
     case Dict.get ( x, y ) grid of
         Just cell ->
             let
@@ -42,6 +42,8 @@ drawCell grid y x =
             div
                 [ class cls
                 , onClick (ClickedCell cell)
+                , style "height" (String.fromFloat config.cellSize ++ "px")
+                , style "width" (String.fromFloat config.cellSize ++ "px")
                 ]
                 [ text txt ]
 
@@ -52,7 +54,7 @@ drawCell grid y x =
 drawRow : Config -> Dict.Dict Coord Cell -> Int -> Html Msg
 drawRow config grid y =
     div [ class "row" ]
-        (List.range 0 (config.dimensions.columns - 1) |> List.map (drawCell grid y))
+        (List.range 0 (config.dimensions.columns - 1) |> List.map (drawCell config grid y))
 
 
 levelName : Level -> String
@@ -165,7 +167,7 @@ root model =
                 ]
             ]
             [ header model
-            , div [ class "grid" ]
+            , div [ class "grid", HA.id "game-grid" ]
                 (List.range 0 (model.config.dimensions.rows - 1) |> List.map (drawRow model.config model.grid))
             , div [ class "footer" ]
                 [ p [] [ text <| "Hello " ++ model.username ]

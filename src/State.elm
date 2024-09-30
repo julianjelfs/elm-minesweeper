@@ -4,7 +4,6 @@ import Debug exposing (log)
 import Dict
 import Ports
 import RandomPositions
-import Task
 import Types exposing (..)
 
 
@@ -80,7 +79,7 @@ startGame : Model -> Maybe Coord -> ( Model, Cmd Msg )
 startGame model coord =
     let
         init =
-            initialModel { username = model.username, level = model.level }
+            initialModel { username = model.username, level = model.level, dimensions = model.dimensions }
     in
     ( { init
         | state = Playing

@@ -10,9 +10,17 @@ import View
 
 flagsDecoder : JD.Decoder Flags
 flagsDecoder =
-    JD.map2 Flags
+    JD.map3 Flags
         (JD.field "username" JD.string)
         (JD.field "level" levelDecoder)
+        (JD.field "dimensions" dimensionsDecoder)
+
+
+dimensionsDecoder : JD.Decoder Dimensions
+dimensionsDecoder =
+    JD.map2 Dimensions
+        (JD.field "width" JD.float)
+        (JD.map (\h -> h - 163) (JD.field "height" JD.float))
 
 
 levelDecoder : JD.Decoder Level
@@ -38,7 +46,7 @@ init args =
         flags =
             case JD.decodeValue flagsDecoder args of
                 Err _ ->
-                    { username = "Unknown", level = Normal }
+                    { username = "Unknown", level = Normal, dimensions = { width = 0, height = 0 } }
 
                 Ok decoded ->
                     decoded

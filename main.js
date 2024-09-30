@@ -12,7 +12,14 @@ window.onload = async () => {
   }
   const app = Elm.Main.init({
     node: document.getElementById("app"),
-    flags: { username: username, level },
+    flags: {
+      username: username,
+      level,
+      dimensions: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      },
+    },
   });
 
   app.ports.updateLevel.subscribe((level) => {
