@@ -5,9 +5,10 @@ module Types exposing
     , Coord
     , Dimensions
     , Flags
+    , GameState
     , Grid
     , Level(..)
-    , Model
+    , Model(..)
     , Msg(..)
     , State(..)
     , addBombToGrid
@@ -23,9 +24,11 @@ module Types exposing
     , levelToInt
     , nearbyCells
     , populateNearbyBombs
+    , propFromModel
     , translate
     )
 
+import Browser.Dom exposing (Error)
 import Debug exposing (..)
 import Dict
 import Set
@@ -38,7 +41,6 @@ type alias Config =
 type alias Flags =
     { username : String
     , level : Level
-    , dimensions : Dimensions
     }
 
 
@@ -104,7 +106,12 @@ levelToInt level =
             3
 
 
-type alias Model =
+type Model
+    = Initialising Flags
+    | Initialised GameState
+
+
+type alias GameState =
     { grid : Grid
     , duration : Float
     , state : State
@@ -134,6 +141,8 @@ type Msg
     | KeyDown IsCtrl
     | KeyUp IsCtrl
     | ToggleLevel
+    | GetDimensions
+    | GotDimensions (Result Error Dimensions)
 
 
 createCell : ( Int, Int ) -> Cell
@@ -154,13 +163,39 @@ createGrid config =
         |> List.foldl (\t d -> Dict.insert t (createCell t) d) Dict.empty
 
 
-initialModel : Flags -> Model
-initialModel flags =
-    let
-        config =
-            getConfig flags.dimensions flags.level
-    in
-    Model (createGrid config) 0 NewGame False config.initialBombs Nothing flags.username config flags.level flags.dimensions
+propFromModel : Model -> (GameState -> a) -> a -> a
+propFromModel model fn def =
+    case model of
+        Initialising _ ->
+            def
+
+        Initialised gs ->
+            fn gs
+
+
+initialModel : Flags -> Maybe Dimensions -> Model
+initialModel flags dimensions =
+    case dimensions of
+        Nothing ->
+            Initialising flags
+
+        Just dims ->
+            let
+                config =
+                    getConfig dims flags.level
+            in
+            Initialised
+                { grid = createGrid config
+                , duration = 0
+                , state = NewGame
+                , ctrl = False
+                , numberOfBombs = config.initialBombs
+                , cellClicked = Nothing
+                , username = flags.username
+                , config = config
+                , level = flags.level
+                , dimensions = dims
+                }
 
 
 inc : Int -> Int

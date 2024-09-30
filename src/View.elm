@@ -75,22 +75,28 @@ levelName level =
 
 levelToggle : Model -> Html Msg
 levelToggle model =
-    Button.button (levelName model.level) ToggleLevel
+    case model of
+        Initialising _ ->
+            div [] []
+
+        Initialised gs ->
+            Button.button (levelName gs.level) ToggleLevel
 
 
 startButton : Model -> Html Msg
 startButton model =
     let
-        cls =
-            case model.state of
-                Lost ->
-                    "start-button sad"
+        lost =
+            case model of
+                Initialised gs ->
+                    gs.state == Lost
 
                 _ ->
-                    "start-button happy"
+                    False
     in
     button
-        [ class cls
+        [ class "start-button"
+        , classList [ ( "sad", lost ), ( "happy", not lost ) ]
         , onClick StartGame
         ]
         []
@@ -104,14 +110,19 @@ padLeftNum =
 bombCount : Model -> Html Msg
 bombCount model =
     div [ class "bomb-count" ]
-        [ div [ class "bomb-icon" ] [], text (padLeftNum model.numberOfBombs) ]
+        [ div [ class "bomb-icon" ] [], text (padLeftNum (propFromModel model .numberOfBombs 0)) ]
+
+
+durationFromModel : Model -> Float
+durationFromModel model =
+    propFromModel model .duration 0
 
 
 timer : Model -> Html Msg
 timer model =
     div [ class "timer" ]
         [ div [ class "timer-icon" ] []
-        , text (durationToSeconds model.duration)
+        , text (durationToSeconds <| durationFromModel model)
         ]
 
 
@@ -138,7 +149,7 @@ youWin : Model -> Html Msg
 youWin model =
     div [ class "modal" ]
         [ div [ class "game-over" ]
-            [ div [] [ text ("Congratulations! You won in " ++ (model.duration |> durationToSeconds) ++ " seconds") ]
+            [ div [] [ text ("Congratulations! You won in " ++ (durationToSeconds <| durationFromModel model) ++ " seconds") ]
             , Button.button "Start Again" StartGame
             ]
         ]
@@ -154,33 +165,61 @@ youLose =
         ]
 
 
+levelFromModel : Model -> Level
+levelFromModel model =
+    propFromModel model .level Normal
+
+
 root : Model -> Html Msg
 root model =
+    let
+        level =
+            levelFromModel model
+
+        user =
+            case model of
+                Initialised { username } ->
+                    username
+
+                Initialising { username } ->
+                    username
+    in
     div [ class "container" ]
         [ div
             [ class "game-area"
             , classList
-                [ ( "easy", model.level == Easy )
-                , ( "normal", model.level == Normal )
-                , ( "hard", model.level == Hard )
-                , ( "hardcore", model.level == Hardcore )
+                [ ( "easy", level == Easy )
+                , ( "normal", level == Normal )
+                , ( "hard", level == Hard )
+                , ( "hardcore", level == Hardcore )
                 ]
             ]
             [ header model
             , div [ class "grid", HA.id "game-grid" ]
-                (List.range 0 (model.config.dimensions.rows - 1) |> List.map (drawRow model.config model.grid))
+                (case model of
+                    Initialising _ ->
+                        []
+
+                    Initialised gameState ->
+                        List.range 0 (gameState.config.dimensions.rows - 1) |> List.map (drawRow gameState.config gameState.grid)
+                )
             , div [ class "footer" ]
-                [ p [] [ text <| "Hello " ++ model.username ]
+                [ p [] [ text <| "Hello " ++ user ]
                 , p [] [ text "Click to reveal a square, Ctrl or Cmd click to flag a square" ]
                 ]
             ]
-        , case model.state of
-            Won ->
-                youWin model
-
-            Lost ->
-                youLose
-
-            _ ->
+        , case model of
+            Initialising _ ->
                 div [] []
+
+            Initialised gameState ->
+                case gameState.state of
+                    Won ->
+                        youWin model
+
+                    Lost ->
+                        youLose
+
+                    _ ->
+                        div [] []
         ]

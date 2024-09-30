@@ -4,23 +4,16 @@ import Browser
 import Browser.Events as Events
 import Json.Decode as JD
 import State
+import Task
 import Types exposing (..)
 import View
 
 
 flagsDecoder : JD.Decoder Flags
 flagsDecoder =
-    JD.map3 Flags
+    JD.map2 Flags
         (JD.field "username" JD.string)
         (JD.field "level" levelDecoder)
-        (JD.field "dimensions" dimensionsDecoder)
-
-
-dimensionsDecoder : JD.Decoder Dimensions
-dimensionsDecoder =
-    JD.map2 Dimensions
-        (JD.field "width" JD.float)
-        (JD.map (\h -> h - 163) (JD.field "height" JD.float))
 
 
 levelDecoder : JD.Decoder Level
@@ -46,19 +39,24 @@ init args =
         flags =
             case JD.decodeValue flagsDecoder args of
                 Err _ ->
-                    { username = "Unknown", level = Normal, dimensions = { width = 0, height = 0 } }
+                    { username = "Unknown", level = Normal }
 
                 Ok decoded ->
                     decoded
     in
-    ( initialModel flags, Cmd.none )
+    ( Initialising flags, Task.perform (\_ -> GetDimensions) (Task.succeed ()) )
 
 
 timerSub : Model -> Sub Msg
 timerSub model =
-    case model.state of
-        Playing ->
-            Events.onAnimationFrameDelta Tick
+    case model of
+        Initialised m ->
+            case m.state of
+                Playing ->
+                    Events.onAnimationFrameDelta Tick
+
+                _ ->
+                    Sub.none
 
         _ ->
             Sub.none

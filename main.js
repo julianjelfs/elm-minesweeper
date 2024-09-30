@@ -15,10 +15,6 @@ window.onload = async () => {
     flags: {
       username: username,
       level,
-      dimensions: {
-        width: window.innerWidth,
-        height: window.innerHeight,
-      },
     },
   });
 
