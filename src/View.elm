@@ -148,7 +148,7 @@ durationToSeconds =
 youWin : Model -> Html Msg
 youWin model =
     div [ class "modal" ]
-        [ div [ class "game-over" ]
+        [ div [ class "modal-content" ]
             [ div [] [ text ("Congratulations! You won in " ++ (durationToSeconds <| durationFromModel model) ++ " seconds") ]
             , Button.button "Start Again" StartGame
             ]
@@ -158,9 +158,22 @@ youWin model =
 youLose : Html Msg
 youLose =
     div [ class "modal" ]
-        [ div [ class "game-over" ]
+        [ div [ class "modal-content" ]
             [ div [] [ text "Sorry you lost - come on it's not that hard" ]
             , Button.button "Try Again" StartGame
+            ]
+        ]
+
+
+instructions : String -> Html Msg
+instructions user =
+    div [ class "modal" ]
+        [ div [ class "modal-content" ]
+            [ div []
+                [ p [] [ text <| "Hello @" ++ user ]
+                , p [] [ text "Click to reveal a square, Ctrl or Cmd click to flag a square" ]
+                ]
+            , Button.button "Got It" (ShowInstructions False)
             ]
         ]
 
@@ -175,6 +188,9 @@ root model =
     let
         level =
             levelFromModel model
+
+        instr =
+            propFromModel model .instructions False
 
         user =
             case model of
@@ -203,10 +219,11 @@ root model =
                     Initialised gameState ->
                         List.range 0 (gameState.config.dimensions.rows - 1) |> List.map (drawRow gameState.config gameState.grid)
                 )
-            , div [ class "footer" ]
-                [ p [] [ text <| "Hello " ++ user ]
-                , p [] [ text "Click to reveal a square, Ctrl or Cmd click to flag a square" ]
-                ]
+            , if instr then
+                instructions user
+
+              else
+                text ""
             ]
         , case model of
             Initialising _ ->

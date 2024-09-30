@@ -41,6 +41,7 @@ type alias Config =
 type alias Flags =
     { username : String
     , level : Level
+    , instructions : Bool
     }
 
 
@@ -122,6 +123,7 @@ type alias GameState =
     , config : Config
     , level : Level
     , dimensions : Dimensions
+    , instructions : Bool
     }
 
 
@@ -143,6 +145,7 @@ type Msg
     | ToggleLevel
     | GetDimensions
     | GotDimensions (Result Error Dimensions)
+    | ShowInstructions Bool
 
 
 createCell : ( Int, Int ) -> Cell
@@ -195,6 +198,7 @@ initialModel flags dimensions =
                 , config = config
                 , level = flags.level
                 , dimensions = dims
+                , instructions = flags.instructions
                 }
 
 

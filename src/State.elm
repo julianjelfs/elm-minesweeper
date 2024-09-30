@@ -82,7 +82,7 @@ startGame : GameState -> Maybe Coord -> ( GameState, Cmd Msg )
 startGame model coord =
     let
         init =
-            initialModel { username = model.username, level = model.level } (Just model.dimensions)
+            initialModel { username = model.username, level = model.level, instructions = model.instructions } (Just model.dimensions)
     in
     case init of
         Initialising _ ->
@@ -142,6 +142,9 @@ update msg m =
                             updated
             in
             (case msg of
+                ShowInstructions show ->
+                    ( { model | instructions = show }, Ports.instructions show )
+
                 Positions pos ->
                     let
                         grid =

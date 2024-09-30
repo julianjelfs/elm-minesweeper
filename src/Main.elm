@@ -11,9 +11,10 @@ import View
 
 flagsDecoder : JD.Decoder Flags
 flagsDecoder =
-    JD.map2 Flags
+    JD.map3 Flags
         (JD.field "username" JD.string)
         (JD.field "level" levelDecoder)
+        (JD.field "instructions" JD.bool)
 
 
 levelDecoder : JD.Decoder Level
@@ -39,7 +40,7 @@ init args =
         flags =
             case JD.decodeValue flagsDecoder args of
                 Err _ ->
-                    { username = "Unknown", level = Normal }
+                    { username = "Unknown", level = Normal, instructions = False }
 
                 Ok decoded ->
                     decoded

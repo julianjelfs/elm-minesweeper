@@ -48,17 +48,6 @@ div[data-elm-hot],
   user-select: none;
 }
 
-.footer {
-  padding: 18px;
-  border-top: var(--bw) solid var(--bd);
-  text-align: center;
-  background: var(--bg);
-}
-
-.footer p {
-  margin: 0 0 8px 0;
-}
-
 .container {
   position: relative;
 }
@@ -75,7 +64,7 @@ div[data-elm-hot],
   background-color: rgba(0, 0, 0, 0.5);
 }
 
-.game-over {
+.modal-content {
   padding: 20px;
   margin: auto 10%;
   text-align: center;
@@ -85,7 +74,7 @@ div[data-elm-hot],
   box-shadow: var(--modal-sh);
 }
 
-.game-over div {
+.modal-content div {
   margin: 20px;
   font-size: 1.1em;
 }
@@ -93,6 +82,7 @@ div[data-elm-hot],
 .game-area {
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 .header {
