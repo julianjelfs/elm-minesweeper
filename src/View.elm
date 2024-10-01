@@ -136,14 +136,10 @@ timer model =
 header : Model -> Html Msg
 header model =
     div [ class "header" ]
-        [ div [ class "left" ]
-            [ startButton model
-            , levelToggle model
-            ]
-        , div [ class "right" ]
-            [ bombCount model
-            , timer model
-            ]
+        [ startButton model
+        , levelToggle model
+        , bombCount model
+        , timer model
         ]
 
 

@@ -87,7 +87,7 @@ div[data-elm-hot],
 
 .header {
   display: flex;
-  justify-content: space-between;
+  gap: 8px;
   align-items: center;
   padding: 10px;
   font-weight: bold;
@@ -117,8 +117,8 @@ div[data-elm-hot],
   background-position: center center;
   background-size: 50%;
   border-radius: var(--rd);
-  width: 55px;
-  height: 50px;
+  width: 34px;
+  height: 34px;
   border: none;
   transition: background ease-in-out 200ms, color ease-in-out 200ms;
 }
@@ -137,17 +137,17 @@ div[data-elm-hot],
 .bomb-count,
 .timer {
   display: flex;
-  gap: 16px;
+  gap: 10px;
   background: var(--bg);
   color: var(--accent);
   font-weight: bold;
-  padding: 10px;
-  font-size: 1.8em;
-  flex: 0 0 150px;
+  font-size: 1.5em;
+  align-items: center;
 }
 
 .timer {
   justify-content: flex-end;
+  margin-left: auto;
 }
 
 .bomb-icon,
@@ -156,7 +156,8 @@ div[data-elm-hot],
   background-position: center center;
   background-size: 50%;
   background-color: var(--vote-no-color);
-  flex: 0 0 40px;
+  height: 34px;
+  width: 34px;
   border-radius: var(--rd);
 }
 
@@ -205,6 +206,24 @@ div[data-elm-hot],
   font-size: 9px;
 }
 
+@media (max-width: 768px) {
+  .easy .cell {
+    font-size: 16px;
+  }
+
+  .normal .cell {
+    font-size: 12px;
+  }
+
+  .hard .cell {
+    font-size: 9px;
+  }
+
+  .hardcore .cell {
+    font-size: 6px;
+  }
+}
+
 .cell.flagged {
   background-image: url(/flag.svg);
   background-repeat: no-repeat;
@@ -231,7 +250,7 @@ div[data-elm-hot],
 
 .btn {
   border: none;
-  padding: 16px 32px;
+  padding: 8px 16px;
   background-color: var(--button-bg);
   color: var(--button-txt);
   cursor: pointer;
