@@ -3,6 +3,7 @@ module Main exposing (init, keyBoard, main, timerSub)
 import Browser
 import Browser.Events as Events
 import Json.Decode as JD
+import Ports
 import State
 import Task
 import Types exposing (..)
@@ -28,6 +29,9 @@ levelDecoder =
 
                     2 ->
                         Hard
+
+                    3 ->
+                        Hardcore
 
                     _ ->
                         Normal
@@ -91,5 +95,5 @@ main =
         { init = init
         , update = State.update
         , view = View.root
-        , subscriptions = \m -> Sub.batch [ timerSub m, keyBoard ]
+        , subscriptions = \m -> Sub.batch [ timerSub m, keyBoard, Ports.resize (\_ -> Resize) ]
         }

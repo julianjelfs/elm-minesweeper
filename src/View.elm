@@ -9,6 +9,19 @@ import String exposing (padLeft)
 import Types exposing (..)
 
 
+bombsToString : Maybe Int -> String
+bombsToString bombs =
+    case bombs of
+        Nothing ->
+            ""
+
+        Just 0 ->
+            ""
+
+        Just n ->
+            String.fromInt n
+
+
 drawCell : Config -> Dict.Dict Coord Cell -> Int -> Int -> Html Msg
 drawCell config grid y x =
     case Dict.get ( x, y ) grid of
@@ -17,7 +30,9 @@ drawCell config grid y x =
                 ( cls, txt ) =
                     case cell.state of
                         Hidden ->
-                            ( "cell hidden", "" )
+                            ( "cell hidden"
+                            , ""
+                            )
 
                         Flagged ->
                             ( "cell flagged", "" )
@@ -28,15 +43,7 @@ drawCell config grid y x =
 
                             else
                                 ( "cell cleared"
-                                , case cell.nearbyBombs of
-                                    Nothing ->
-                                        ""
-
-                                    Just 0 ->
-                                        ""
-
-                                    Just n ->
-                                        String.fromInt n
+                                , bombsToString cell.nearbyBombs
                                 )
             in
             div

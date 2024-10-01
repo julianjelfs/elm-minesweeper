@@ -32,4 +32,6 @@ window.onload = async () => {
   app.ports.instructions.subscribe((show) => {
     localStorage.setItem("openchat_minesweeper_instructions", show.toString());
   });
+
+  window.onresize = () => app.ports.resize.send(true);
 };

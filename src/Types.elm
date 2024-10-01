@@ -146,6 +146,7 @@ type Msg
     | GetDimensions
     | GotDimensions (Result Error Dimensions)
     | ShowInstructions Bool
+    | Resize
 
 
 createCell : ( Int, Int ) -> Cell
@@ -308,9 +309,9 @@ getConfig dimensions level =
         Hard ->
             let
                 size =
-                    dimensions.width / 40
+                    dimensions.width / 30
             in
-            { dimensions = { rows = numRows size, columns = 40 }
+            { dimensions = { rows = numRows size, columns = 30 }
             , initialBombs = 200
             , cellSize = size
             }
@@ -318,9 +319,9 @@ getConfig dimensions level =
         Hardcore ->
             let
                 size =
-                    dimensions.width / 70
+                    dimensions.width / 50
             in
-            { dimensions = { rows = numRows size, columns = 70 }
+            { dimensions = { rows = numRows size, columns = 50 }
             , initialBombs = 400
             , cellSize = size
             }

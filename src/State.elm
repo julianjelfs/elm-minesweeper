@@ -6,6 +6,8 @@ import Dict
 import Html.Attributes exposing (start)
 import Ports
 import RandomPositions
+import Set
+import String exposing (replace)
 import Task
 import Types exposing (..)
 
@@ -15,38 +17,46 @@ replaceCell cell grid =
     Dict.insert ( cell.x, cell.y ) cell grid
 
 
-revealCell : GameState -> Grid -> Cell -> GameState
-revealCell model grid cell =
-    if cell.bomb then
-        { model
-            | state = Lost
-            , grid = replaceCell { cell | state = Cleared } grid
-        }
+processQueue : GameState -> List Cell -> GameState
+processQueue gameState queue =
+    case queue of
+        [] ->
+            gameState
 
-    else
-        let
-            updatedModel =
-                { model
-                    | grid =
-                        replaceCell { cell | state = Cleared } grid
-                }
-        in
-        case cell.nearbyBombs of
-            Just 0 ->
-                -- if there are 0, show that cell and reveal all surrounding cells
-                let
-                    nearby =
-                        nearbyCells updatedModel.grid ( cell.x, cell.y )
-                            |> List.filter (\c -> c.state == Hidden)
+        cell :: rest ->
+            let
+                updatedState =
+                    { gameState | grid = replaceCell { cell | state = Cleared } gameState.grid }
+            in
+            if cell.state /= Hidden then
+                processQueue gameState rest
 
-                    grid_ =
-                        List.foldl (\c g -> revealCell model g c |> .grid) updatedModel.grid nearby
-                in
-                { updatedModel | grid = grid_ }
+            else if cell.bomb then
+                { updatedState | state = Lost }
 
-            _ ->
-                -- if there are > 0, show that cell
-                updatedModel
+            else
+                case cell.nearbyBombs of
+                    Just 0 ->
+                        let
+                            queueAsSet =
+                                Set.fromList (List.map (\c -> ( c.x, c.y )) rest)
+
+                            nearby =
+                                nearbyCells updatedState.grid ( cell.x, cell.y )
+                                    |> List.filter (\c -> c.state == Hidden && (not <| Set.member ( c.x, c.y ) queueAsSet))
+
+                            updatedQueue =
+                                List.append rest nearby
+                        in
+                        processQueue updatedState updatedQueue
+
+                    _ ->
+                        processQueue updatedState rest
+
+
+revealCell : GameState -> Cell -> GameState
+revealCell model cell =
+    processQueue model [ cell ]
 
 
 flagCell : GameState -> Cell -> GameState
@@ -106,6 +116,9 @@ update msg m =
     case m of
         Initialising flags ->
             case msg of
+                Resize ->
+                    ( m, Task.perform (\_ -> GetDimensions) (Task.succeed ()) )
+
                 GetDimensions ->
                     ( m, Dom.getElement "game-grid" |> Task.map (\dom -> { width = dom.element.width, height = dom.element.height }) |> Task.attempt GotDimensions )
 
@@ -128,7 +141,7 @@ update msg m =
                                     flagCell gameState c
 
                                 else
-                                    revealCell gameState gameState.grid c
+                                    revealCell gameState c
 
                             won =
                                 (updated.state == Playing)
@@ -141,67 +154,73 @@ update msg m =
                         else
                             updated
             in
-            (case msg of
-                ShowInstructions show ->
-                    ( { model | instructions = show }, Ports.instructions show )
+            if msg == Resize then
+                ( Initialising { username = model.username, level = model.level, instructions = model.instructions }
+                , Task.perform (\_ -> GetDimensions) (Task.succeed ())
+                )
 
-                Positions pos ->
-                    let
-                        grid =
-                            addBombsToGrid pos model.grid
+            else
+                (case msg of
+                    ShowInstructions show ->
+                        ( { model | instructions = show }, Ports.instructions show )
 
-                        cellClicked =
-                            Maybe.andThen (\coord -> getCell coord grid) model.cellClicked
+                    Positions pos ->
+                        let
+                            grid =
+                                addBombsToGrid pos model.grid
 
-                        updated =
-                            { model | cellClicked = Nothing, grid = grid }
-                    in
-                    case cellClicked of
-                        Nothing ->
-                            ( updated, Cmd.none )
+                            cellClicked =
+                                Maybe.andThen (\coord -> getCell coord grid) model.cellClicked
 
-                        Just c ->
-                            ( handleClick updated c, Cmd.none )
+                            updated =
+                                { model | cellClicked = Nothing, grid = grid }
+                        in
+                        case cellClicked of
+                            Nothing ->
+                                ( updated, Cmd.none )
 
-                StartGame ->
-                    startGame model Nothing
+                            Just c ->
+                                ( handleClick updated c, Cmd.none )
 
-                Tick t ->
-                    ( { model | duration = model.duration + t }, Cmd.none )
+                    StartGame ->
+                        startGame model Nothing
 
-                ClickedCell cell ->
-                    case model.state of
-                        Playing ->
-                            ( handleClick model cell, Cmd.none )
+                    Tick t ->
+                        ( { model | duration = model.duration + t }, Cmd.none )
 
-                        _ ->
-                            startGame model (Just ( cell.x, cell.y ))
+                    ClickedCell cell ->
+                        case model.state of
+                            Playing ->
+                                ( handleClick model cell, Cmd.none )
 
-                KeyDown _ ->
-                    ( { model | ctrl = True }, Cmd.none )
+                            _ ->
+                                startGame model (Just ( cell.x, cell.y ))
 
-                KeyUp _ ->
-                    ( { model | ctrl = False }, Cmd.none )
+                    KeyDown _ ->
+                        ( { model | ctrl = True }, Cmd.none )
 
-                ToggleLevel ->
-                    let
-                        level =
-                            case model.level of
-                                Easy ->
-                                    Normal
+                    KeyUp _ ->
+                        ( { model | ctrl = False }, Cmd.none )
 
-                                Normal ->
-                                    Hard
+                    ToggleLevel ->
+                        let
+                            level =
+                                case model.level of
+                                    Easy ->
+                                        Normal
 
-                                Hard ->
-                                    Hardcore
+                                    Normal ->
+                                        Hard
 
-                                Hardcore ->
-                                    Easy
-                    in
-                    startGame { model | level = level } Nothing
+                                    Hard ->
+                                        Hardcore
 
-                _ ->
-                    ( model, Cmd.none )
-            )
-                |> (\( gs, cmds ) -> ( Initialised gs, cmds ))
+                                    Hardcore ->
+                                        Easy
+                        in
+                        startGame { model | level = level } Nothing
+
+                    _ ->
+                        ( model, Cmd.none )
+                )
+                    |> (\( gs, cmds ) -> ( Initialised gs, cmds ))
