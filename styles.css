@@ -74,7 +74,17 @@ div[data-elm-hot],
   box-shadow: var(--modal-sh);
 }
 
-.modal-content div {
+.fastest-times {
+  text-align: left;
+  min-width: 250px;
+}
+
+.time {
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal-content > div {
   margin: 20px;
   font-size: 1.1em;
 }
@@ -115,7 +125,7 @@ div[data-elm-hot],
   cursor: pointer;
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: 50%;
+  background-size: 60%;
   border-radius: var(--rd);
   width: 34px;
   height: 34px;
@@ -151,7 +161,8 @@ div[data-elm-hot],
 }
 
 .bomb-icon,
-.timer-icon {
+.timer-icon,
+.high-scores-icon {
   background-repeat: no-repeat;
   background-position: center center;
   background-size: 50%;
@@ -167,6 +178,14 @@ div[data-elm-hot],
 
 .timer-icon {
   background-image: url(/timer.svg);
+}
+
+.high-score {
+  background-image: url(/chart.svg);
+}
+
+.instructions {
+  background-image: url(/help.svg);
 }
 
 .grid {

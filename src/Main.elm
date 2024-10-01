@@ -12,10 +12,20 @@ import View
 
 flagsDecoder : JD.Decoder Flags
 flagsDecoder =
-    JD.map3 Flags
+    JD.map4 Flags
         (JD.field "username" JD.string)
         (JD.field "level" levelDecoder)
         (JD.field "instructions" JD.bool)
+        (JD.field "fastestTimes" fastestTimesDecoder)
+
+
+fastestTimesDecoder : JD.Decoder FastestTimes
+fastestTimesDecoder =
+    JD.map4 FastestTimes
+        (JD.field "easy" (JD.maybe JD.float))
+        (JD.field "normal" (JD.maybe JD.float))
+        (JD.field "hard" (JD.maybe JD.float))
+        (JD.field "hardcore" (JD.maybe JD.float))
 
 
 levelDecoder : JD.Decoder Level
@@ -44,7 +54,7 @@ init args =
         flags =
             case JD.decodeValue flagsDecoder args of
                 Err _ ->
-                    { username = "Unknown", level = Normal, instructions = False }
+                    { username = "Unknown", level = Normal, instructions = False, fastestTimes = nullFastestTimes }
 
                 Ok decoded ->
                     decoded

@@ -7,6 +7,12 @@ window.onload = async () => {
   let level = Number(localStorage.getItem("openchat_minesweeper_level") ?? 1);
   let instructions =
     localStorage.getItem("openchat_minesweeper_instructions") !== "false";
+  let fastestStr = localStorage.getItem("openchat_minesweeper_fastest");
+  let fastestTimes = {};
+  if (fastestStr) {
+    fastestTimes = JSON.parse(fastestStr);
+  }
+
   let username = "User";
   if (window.self !== window.top) {
     const client = await initialise();
@@ -17,6 +23,7 @@ window.onload = async () => {
     username: username,
     level,
     instructions,
+    fastestTimes,
   };
 
   console.log("Flags: ", flags);
@@ -31,6 +38,13 @@ window.onload = async () => {
 
   app.ports.instructions.subscribe((show) => {
     localStorage.setItem("openchat_minesweeper_instructions", show.toString());
+  });
+
+  app.ports.updateFastest.subscribe((fastest) => {
+    localStorage.setItem(
+      "openchat_minesweeper_fastest",
+      JSON.stringify(fastest)
+    );
   });
 
   window.onresize = () => app.ports.resize.send(true);

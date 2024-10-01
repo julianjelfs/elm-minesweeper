@@ -4,6 +4,7 @@ module Types exposing
     , Config
     , Coord
     , Dimensions
+    , FastestTimes
     , Flags
     , GameState
     , Grid
@@ -16,6 +17,7 @@ module Types exposing
     , createCell
     , createGrid
     , dec
+    , durationToSeconds
     , getCell
     , getConfig
     , id
@@ -23,6 +25,8 @@ module Types exposing
     , initialModel
     , levelToInt
     , nearbyCells
+    , nullFastestTimes
+    , padLeftNum
     , populateNearbyBombs
     , propFromModel
     , translate
@@ -32,6 +36,7 @@ import Browser.Dom exposing (Error)
 import Debug exposing (..)
 import Dict
 import Set
+import String exposing (padLeft)
 
 
 type alias Config =
@@ -42,6 +47,24 @@ type alias Flags =
     { username : String
     , level : Level
     , instructions : Bool
+    , fastestTimes : FastestTimes
+    }
+
+
+type alias FastestTimes =
+    { easy : Maybe Float
+    , normal : Maybe Float
+    , hard : Maybe Float
+    , hardcore : Maybe Float
+    }
+
+
+nullFastestTimes : FastestTimes
+nullFastestTimes =
+    { easy = Nothing
+    , normal = Nothing
+    , hard = Nothing
+    , hardcore = Nothing
     }
 
 
@@ -124,6 +147,8 @@ type alias GameState =
     , level : Level
     , dimensions : Dimensions
     , instructions : Bool
+    , highScores : Bool
+    , fastestTimes : FastestTimes
     }
 
 
@@ -147,6 +172,17 @@ type Msg
     | GotDimensions (Result Error Dimensions)
     | ShowInstructions Bool
     | Resize
+    | ShowHighScores Bool
+
+
+padLeftNum : Int -> String
+padLeftNum =
+    String.fromInt >> padLeft 3 '0'
+
+
+durationToSeconds : Float -> String
+durationToSeconds =
+    (\a -> a / 1000) >> round >> padLeftNum
 
 
 createCell : ( Int, Int ) -> Cell
@@ -200,6 +236,8 @@ initialModel flags dimensions =
                 , level = flags.level
                 , dimensions = dims
                 , instructions = flags.instructions
+                , highScores = False
+                , fastestTimes = flags.fastestTimes
                 }
 
 
