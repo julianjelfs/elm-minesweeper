@@ -48,17 +48,6 @@ div[data-elm-hot],
   user-select: none;
 }
 
-.footer {
-  padding: 18px;
-  border-top: var(--bw) solid var(--bd);
-  text-align: center;
-  background: var(--bg);
-}
-
-.footer p {
-  margin: 0 0 8px 0;
-}
-
 .container {
   position: relative;
 }
@@ -75,7 +64,7 @@ div[data-elm-hot],
   background-color: rgba(0, 0, 0, 0.5);
 }
 
-.game-over {
+.modal-content {
   padding: 20px;
   margin: auto 10%;
   text-align: center;
@@ -85,7 +74,7 @@ div[data-elm-hot],
   box-shadow: var(--modal-sh);
 }
 
-.game-over div {
+.modal-content div {
   margin: 20px;
   font-size: 1.1em;
 }
@@ -93,11 +82,12 @@ div[data-elm-hot],
 .game-area {
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 .header {
   display: flex;
-  justify-content: space-between;
+  gap: 8px;
   align-items: center;
   padding: 10px;
   font-weight: bold;
@@ -127,8 +117,8 @@ div[data-elm-hot],
   background-position: center center;
   background-size: 50%;
   border-radius: var(--rd);
-  width: 55px;
-  height: 50px;
+  width: 34px;
+  height: 34px;
   border: none;
   transition: background ease-in-out 200ms, color ease-in-out 200ms;
 }
@@ -147,17 +137,17 @@ div[data-elm-hot],
 .bomb-count,
 .timer {
   display: flex;
-  gap: 16px;
+  gap: 10px;
   background: var(--bg);
   color: var(--accent);
   font-weight: bold;
-  padding: 10px;
-  font-size: 1.8em;
-  flex: 0 0 150px;
+  font-size: 1.5em;
+  align-items: center;
 }
 
 .timer {
   justify-content: flex-end;
+  margin-left: auto;
 }
 
 .bomb-icon,
@@ -166,7 +156,8 @@ div[data-elm-hot],
   background-position: center center;
   background-size: 50%;
   background-color: var(--vote-no-color);
-  flex: 0 0 40px;
+  height: 34px;
+  width: 34px;
   border-radius: var(--rd);
 }
 
@@ -190,8 +181,6 @@ div[data-elm-hot],
 }
 
 .cell {
-  flex: 1;
-  aspect-ratio: 1 / 1;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -215,6 +204,24 @@ div[data-elm-hot],
 
 .hardcore .cell {
   font-size: 9px;
+}
+
+@media (max-width: 768px) {
+  .easy .cell {
+    font-size: 16px;
+  }
+
+  .normal .cell {
+    font-size: 12px;
+  }
+
+  .hard .cell {
+    font-size: 9px;
+  }
+
+  .hardcore .cell {
+    font-size: 6px;
+  }
 }
 
 .cell.flagged {
@@ -243,7 +250,7 @@ div[data-elm-hot],
 
 .btn {
   border: none;
-  padding: 16px 32px;
+  padding: 8px 16px;
   background-color: var(--button-bg);
   color: var(--button-txt);
   cursor: pointer;
