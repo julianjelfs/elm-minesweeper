@@ -4,6 +4,7 @@ import Browser.Dom as Dom
 import Debug exposing (log)
 import Dict
 import Html.Attributes exposing (start)
+import Json.Encode as JE
 import Ports
 import RandomPositions
 import Set
@@ -88,11 +89,16 @@ noHiddenCells =
     Dict.filter (\k v -> v.state == Hidden) >> Dict.isEmpty
 
 
+flagsFromModel : GameState -> Flags
+flagsFromModel model =
+    { username = model.username, level = model.level, instructions = model.instructions, fastestTimes = model.fastestTimes }
+
+
 startGame : GameState -> Maybe Coord -> ( GameState, Cmd Msg )
 startGame model coord =
     let
         init =
-            initialModel { username = model.username, level = model.level, instructions = model.instructions } (Just model.dimensions)
+            initialModel (flagsFromModel model) (Just model.dimensions)
     in
     case init of
         Initialising _ ->
@@ -109,6 +115,87 @@ startGame model coord =
                 , Ports.updateLevel (levelToInt model.level)
                 ]
             )
+
+
+encodeOptionalFloat : Maybe Float -> JE.Value
+encodeOptionalFloat f =
+    case f of
+        Nothing ->
+            JE.null
+
+        Just f_ ->
+            JE.float f_
+
+
+encodeFastestTimes : FastestTimes -> JE.Value
+encodeFastestTimes { easy, normal, hard, hardcore } =
+    JE.object
+        [ ( "easy", encodeOptionalFloat easy )
+        , ( "normal", encodeOptionalFloat normal )
+        , ( "hard", encodeOptionalFloat hard )
+        , ( "hardcore", encodeOptionalFloat hardcore )
+        ]
+
+
+updateFastestTimes : GameState -> FastestTimes
+updateFastestTimes { duration, level, fastestTimes } =
+    case level of
+        Easy ->
+            case fastestTimes.easy of
+                Nothing ->
+                    { fastestTimes | easy = Just duration }
+
+                Just easy ->
+                    if easy > duration then
+                        { fastestTimes | easy = Just duration }
+
+                    else
+                        fastestTimes
+
+        Normal ->
+            case fastestTimes.normal of
+                Nothing ->
+                    { fastestTimes | normal = Just duration }
+
+                Just normal ->
+                    if normal > duration then
+                        { fastestTimes | normal = Just duration }
+
+                    else
+                        fastestTimes
+
+        Hard ->
+            case fastestTimes.hard of
+                Nothing ->
+                    { fastestTimes | hard = Just duration }
+
+                Just hard ->
+                    if hard > duration then
+                        { fastestTimes | hard = Just duration }
+
+                    else
+                        fastestTimes
+
+        Hardcore ->
+            case fastestTimes.hardcore of
+                Nothing ->
+                    { fastestTimes | hardcore = Just duration }
+
+                Just hardcore ->
+                    if hardcore > duration then
+                        { fastestTimes | hardcore = Just duration }
+
+                    else
+                        fastestTimes
+
+
+refreshFastestTimes : GameState -> ( GameState, Cmd Msg )
+refreshFastestTimes model =
+    let
+        updated =
+            updateFastestTimes model
+    in
+    ( { model | fastestTimes = updated }, Ports.updateFastest (encodeFastestTimes <| updated) )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -149,18 +236,25 @@ update msg m =
                                     && noHiddenCells updated.grid
                         in
                         if won == True then
-                            { updated | state = Won }
+                            let
+                                ( refreshed, cmd ) =
+                                    refreshFastestTimes updated
+                            in
+                            ( { refreshed | state = Won }, cmd )
 
                         else
-                            updated
+                            ( updated, Cmd.none )
             in
             if msg == Resize then
-                ( Initialising { username = model.username, level = model.level, instructions = model.instructions }
+                ( Initialising (flagsFromModel model)
                 , Task.perform (\_ -> GetDimensions) (Task.succeed ())
                 )
 
             else
                 (case msg of
+                    ShowHighScores show ->
+                        ( { model | highScores = show }, Cmd.none )
+
                     ShowInstructions show ->
                         ( { model | instructions = show }, Ports.instructions show )
 
@@ -180,7 +274,7 @@ update msg m =
                                 ( updated, Cmd.none )
 
                             Just c ->
-                                ( handleClick updated c, Cmd.none )
+                                handleClick updated c
 
                     StartGame ->
                         startGame model Nothing
@@ -191,7 +285,7 @@ update msg m =
                     ClickedCell cell ->
                         case model.state of
                             Playing ->
-                                ( handleClick model cell, Cmd.none )
+                                handleClick model cell
 
                             _ ->
                                 startGame model (Just ( cell.x, cell.y ))

@@ -5,7 +5,6 @@ import Dict
 import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
-import String exposing (padLeft)
 import Types exposing (..)
 
 
@@ -109,9 +108,22 @@ startButton model =
         []
 
 
-padLeftNum : Int -> String
-padLeftNum =
-    String.fromInt >> padLeft 3 '0'
+highScores : Html Msg
+highScores =
+    button
+        [ class "start-button high-score"
+        , onClick (ShowHighScores True)
+        ]
+        []
+
+
+instructions : Html Msg
+instructions =
+    button
+        [ class "start-button instructions"
+        , onClick (ShowInstructions True)
+        ]
+        []
 
 
 bombCount : Model -> Html Msg
@@ -137,15 +149,12 @@ header : Model -> Html Msg
 header model =
     div [ class "header" ]
         [ startButton model
+        , highScores
+        , instructions
         , levelToggle model
         , bombCount model
         , timer model
         ]
-
-
-durationToSeconds : Float -> String
-durationToSeconds =
-    (\a -> a / 1000) >> round >> padLeftNum
 
 
 youWin : Model -> Html Msg
@@ -168,8 +177,8 @@ youLose =
         ]
 
 
-instructions : String -> Html Msg
-instructions user =
+instructionsModal : String -> Html Msg
+instructionsModal user =
     div [ class "modal" ]
         [ div [ class "modal-content" ]
             [ div []
@@ -177,6 +186,31 @@ instructions user =
                 , p [] [ text "Click to reveal a square, Ctrl or Cmd click to flag a square" ]
                 ]
             , Button.button "Got It" (ShowInstructions False)
+            ]
+        ]
+
+
+score : Maybe Float -> String
+score =
+    Maybe.map durationToSeconds >> Maybe.withDefault "___"
+
+
+fastestTimesModal : FastestTimes -> Html Msg
+fastestTimesModal { easy, normal, hard, hardcore } =
+    div [ class "modal" ]
+        [ div [ class "modal-content" ]
+            [ div [ class "fastest-times" ]
+                [ h3 [] [ text "Fastest Times" ]
+                , div [ class "time" ]
+                    [ div [] [ text "Easy:" ], div [] [ text <| score easy ] ]
+                , div [ class "time" ]
+                    [ div [] [ text "Normal:" ], div [] [ text <| score normal ] ]
+                , div [ class "time" ]
+                    [ div [] [ text "Hard:" ], div [] [ text <| score hard ] ]
+                , div [ class "time" ]
+                    [ div [] [ text "Hardcore:" ], div [] [ text <| score hardcore ] ]
+                ]
+            , Button.button "Close" (ShowHighScores False)
             ]
         ]
 
@@ -194,6 +228,12 @@ root model =
 
         instr =
             propFromModel model .instructions False
+
+        showHighScores =
+            propFromModel model .highScores False
+
+        fastestTimes =
+            propFromModel model .fastestTimes nullFastestTimes
 
         user =
             case model of
@@ -223,7 +263,12 @@ root model =
                         List.range 0 (gameState.config.dimensions.rows - 1) |> List.map (drawRow gameState.config gameState.grid)
                 )
             , if instr then
-                instructions user
+                instructionsModal user
+
+              else
+                text ""
+            , if showHighScores then
+                fastestTimesModal fastestTimes
 
               else
                 text ""
