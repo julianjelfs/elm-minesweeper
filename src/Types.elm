@@ -351,6 +351,6 @@ getConfig dimensions level =
                     dimensions.width / 50
             in
             { dimensions = { rows = numRows size, columns = 50 }
-            , initialBombs = 400
+            , initialBombs = 300
             , cellSize = size
             }
