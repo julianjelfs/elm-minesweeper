@@ -42,11 +42,7 @@ drawCell touch config grid y x =
                     case cell.state of
                         Hidden ->
                             ( "cell hidden"
-                            , if cell.bomb then
-                                "x"
-
-                              else
-                                ""
+                            , ""
                             )
 
                         Flagged ->
