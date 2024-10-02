@@ -48,6 +48,7 @@ type alias Flags =
     , level : Level
     , instructions : Bool
     , fastestTimes : FastestTimes
+    , touch : Bool
     }
 
 
