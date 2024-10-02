@@ -41,7 +41,11 @@ drawCell touch config grid y x =
                     case cell.state of
                         Hidden ->
                             ( "cell hidden"
-                            , ""
+                            , if cell.bomb then
+                                "x"
+
+                              else
+                                ""
                             )
 
                         Flagged ->
@@ -63,6 +67,8 @@ drawCell touch config grid y x =
                     , onTouchEnd EndPress
                     , style "height" (String.fromFloat config.cellSize ++ "px")
                     , style "width" (String.fromFloat config.cellSize ++ "px")
+                    , style "min-width" "50px"
+                    , style "min-height" "50px"
                     ]
                     [ text txt ]
 

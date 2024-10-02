@@ -111,7 +111,7 @@ startGame model coord =
         init =
             initialModel model.flags (Maybe.map .dimensions model.game)
     in
-    case model.game of
+    case init.game of
         Nothing ->
             ( model, Cmd.none )
 
