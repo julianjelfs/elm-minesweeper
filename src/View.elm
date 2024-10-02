@@ -81,28 +81,14 @@ levelName level =
 
 levelToggle : Model -> Html Msg
 levelToggle model =
-    case model of
-        Initialising _ ->
-            div [] []
-
-        Initialised gs ->
-            Button.button (levelName gs.level) ToggleLevel
+    Button.button (levelName model.flags.level) ToggleLevel
 
 
 startButton : Model -> Html Msg
 startButton model =
-    let
-        lost =
-            case model of
-                Initialised gs ->
-                    gs.state == Lost
-
-                _ ->
-                    False
-    in
     button
         [ class "start-button"
-        , classList [ ( "sad", lost ), ( "happy", not lost ) ]
+        , classList [ ( "sad", model.state == Lost ), ( "happy", not (model.state == Lost) ) ]
         , onClick StartGame
         ]
         []
@@ -129,19 +115,14 @@ instructions =
 bombCount : Model -> Html Msg
 bombCount model =
     div [ class "bomb-count" ]
-        [ div [ class "bomb-icon" ] [], text (padLeftNum (propFromModel model .numberOfBombs 0)) ]
-
-
-durationFromModel : Model -> Float
-durationFromModel model =
-    propFromModel model .duration 0
+        [ div [ class "bomb-icon" ] [], text (padLeftNum (Maybe.map .numberOfBombs model.game |> Maybe.withDefault 0)) ]
 
 
 timer : Model -> Html Msg
 timer model =
     div [ class "timer" ]
         [ div [ class "timer-icon" ] []
-        , text (durationToSeconds <| durationFromModel model)
+        , text (durationToSeconds model.duration)
         ]
 
 
@@ -161,7 +142,7 @@ youWin : Model -> Html Msg
 youWin model =
     div [ class "modal" ]
         [ div [ class "modal-content" ]
-            [ div [] [ text ("Congratulations! You won in " ++ (durationToSeconds <| durationFromModel model) ++ " seconds") ]
+            [ div [] [ text ("Congratulations! You won in " ++ durationToSeconds model.duration ++ " seconds") ]
             , Button.button "Start Again" StartGame
             ]
         ]
@@ -215,33 +196,23 @@ fastestTimesModal { easy, normal, hard, hardcore } =
         ]
 
 
-levelFromModel : Model -> Level
-levelFromModel model =
-    propFromModel model .level Normal
-
-
 root : Model -> Html Msg
 root model =
     let
         level =
-            levelFromModel model
+            model.flags.level
 
         instr =
-            propFromModel model .instructions False
+            model.flags.instructions
 
         showHighScores =
-            propFromModel model .highScores False
+            model.highScores
 
         fastestTimes =
-            propFromModel model .fastestTimes nullFastestTimes
+            model.flags.fastestTimes
 
         user =
-            case model of
-                Initialised { username } ->
-                    username
-
-                Initialising { username } ->
-                    username
+            model.flags.username
     in
     div [ class "container" ]
         [ div
@@ -255,11 +226,11 @@ root model =
             ]
             [ header model
             , div [ class "grid", HA.id "game-grid" ]
-                (case model of
-                    Initialising _ ->
+                (case model.game of
+                    Nothing ->
                         []
 
-                    Initialised gameState ->
+                    Just gameState ->
                         List.range 0 (gameState.config.dimensions.rows - 1) |> List.map (drawRow gameState.config gameState.grid)
                 )
             , if instr then
@@ -273,18 +244,13 @@ root model =
               else
                 text ""
             ]
-        , case model of
-            Initialising _ ->
+        , case model.state of
+            Won ->
+                youWin model
+
+            Lost ->
+                youLose
+
+            _ ->
                 div [] []
-
-            Initialised gameState ->
-                case gameState.state of
-                    Won ->
-                        youWin model
-
-                    Lost ->
-                        youLose
-
-                    _ ->
-                        div [] []
         ]

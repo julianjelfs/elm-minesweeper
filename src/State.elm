@@ -18,101 +18,111 @@ replaceCell cell grid =
     Dict.insert ( cell.x, cell.y ) cell grid
 
 
-processQueue : GameState -> List Cell -> GameState
-processQueue gameState queue =
-    case queue of
-        [] ->
-            gameState
+processQueue : Model -> List Cell -> Model
+processQueue model queue =
+    case model.game of
+        Nothing ->
+            model
 
-        cell :: rest ->
-            let
-                updatedState =
-                    { gameState | grid = replaceCell { cell | state = Cleared } gameState.grid }
-            in
-            if cell.state /= Hidden then
-                processQueue gameState rest
+        Just game ->
+            case queue of
+                [] ->
+                    model
 
-            else if cell.bomb then
-                { updatedState | state = Lost }
+                cell :: rest ->
+                    let
+                        updatedGame =
+                            { game | grid = replaceCell { cell | state = Cleared } game.grid }
 
-            else
-                case cell.nearbyBombs of
-                    Just 0 ->
-                        let
-                            queueAsSet =
-                                Set.fromList (List.map (\c -> ( c.x, c.y )) rest)
+                        updatedModel =
+                            { model | game = Just updatedGame }
+                    in
+                    if cell.state /= Hidden then
+                        processQueue model rest
 
-                            nearby =
-                                nearbyCells updatedState.grid ( cell.x, cell.y )
-                                    |> List.filter (\c -> c.state == Hidden && (not <| Set.member ( c.x, c.y ) queueAsSet))
+                    else if cell.bomb then
+                        { updatedModel | state = Lost }
 
-                            updatedQueue =
-                                List.append rest nearby
-                        in
-                        processQueue updatedState updatedQueue
+                    else
+                        case cell.nearbyBombs of
+                            Just 0 ->
+                                let
+                                    queueAsSet =
+                                        Set.fromList (List.map (\c -> ( c.x, c.y )) rest)
 
-                    _ ->
-                        processQueue updatedState rest
+                                    nearby =
+                                        nearbyCells updatedGame.grid ( cell.x, cell.y )
+                                            |> List.filter (\c -> c.state == Hidden && (not <| Set.member ( c.x, c.y ) queueAsSet))
+
+                                    updatedQueue =
+                                        List.append rest nearby
+                                in
+                                processQueue updatedModel updatedQueue
+
+                            _ ->
+                                processQueue updatedModel rest
 
 
-revealCell : GameState -> Cell -> GameState
+revealCell : Model -> Cell -> Model
 revealCell model cell =
     processQueue model [ cell ]
 
 
-flagCell : GameState -> Cell -> GameState
+flagCell : Model -> Cell -> Model
 flagCell model cell =
-    let
-        changeState =
-            \b s ->
-                { model
-                    | numberOfBombs = b
-                    , grid = model.grid |> replaceCell { cell | state = s }
-                }
-    in
-    case cell.state of
-        Flagged ->
-            changeState (model.numberOfBombs + 1) Hidden
-
-        Hidden ->
-            if model.numberOfBombs > 0 then
-                changeState (model.numberOfBombs - 1) Flagged
-
-            else
-                model
-
-        _ ->
+    case model.game of
+        Nothing ->
             model
+
+        Just game ->
+            let
+                changeState =
+                    \b s ->
+                        { game
+                            | numberOfBombs = b
+                            , grid = game.grid |> replaceCell { cell | state = s }
+                        }
+            in
+            (case cell.state of
+                Flagged ->
+                    changeState (game.numberOfBombs + 1) Hidden
+
+                Hidden ->
+                    if game.numberOfBombs > 0 then
+                        changeState (game.numberOfBombs - 1) Flagged
+
+                    else
+                        game
+
+                _ ->
+                    game
+            )
+                |> (\g -> { model | game = Just g })
 
 
 noHiddenCells =
     Dict.filter (\k v -> v.state == Hidden) >> Dict.isEmpty
 
 
-flagsFromModel : GameState -> Flags
-flagsFromModel model =
-    { username = model.username, level = model.level, instructions = model.instructions, fastestTimes = model.fastestTimes }
-
-
-startGame : GameState -> Maybe Coord -> ( GameState, Cmd Msg )
+startGame : Model -> Maybe Coord -> ( Model, Cmd Msg )
 startGame model coord =
     let
         init =
-            initialModel (flagsFromModel model) (Just model.dimensions)
+            initialModel model.flags (Maybe.map .dimensions model.game)
     in
-    case init of
-        Initialising _ ->
+    case model.game of
+        Nothing ->
             ( model, Cmd.none )
 
-        Initialised gameState ->
-            ( { gameState
+        Just game ->
+            ( { init
                 | state = Playing
                 , ctrl = model.ctrl
                 , cellClicked = coord
               }
             , Cmd.batch
-                [ RandomPositions.get gameState.config
-                , Ports.updateLevel (levelToInt model.level)
+                [ RandomPositions.get game.config
+                , Ports.updateLevel (levelToInt model.flags.level)
                 ]
             )
 
@@ -137,8 +147,15 @@ encodeFastestTimes { easy, normal, hard, hardcore } =
         ]
 
 
-updateFastestTimes : GameState -> FastestTimes
-updateFastestTimes { duration, level, fastestTimes } =
+updateFastestTimes : Model -> FastestTimes
+updateFastestTimes model =
+    let
+        { level, fastestTimes } =
+            model.flags
+
+        duration =
+            model.duration
+    in
     case level of
         Easy ->
             case fastestTimes.easy of
@@ -189,132 +206,146 @@ updateFastestTimes { duration, level, fastestTimes } =
                         fastestTimes
 
 
-refreshFastestTimes : GameState -> ( GameState, Cmd Msg )
+refreshFastestTimes : Model -> ( Model, Cmd Msg )
 refreshFastestTimes model =
     let
-        updated =
+        updatedTimes =
             updateFastestTimes model
+
+        flags =
+            model.flags
+
+        updatedFlags =
+            { flags | fastestTimes = updatedTimes }
     in
-    ( { model | fastestTimes = updated }, Ports.updateFastest (encodeFastestTimes <| updated) )
+    ( { model | flags = updatedFlags }, Ports.updateFastest (encodeFastestTimes <| updatedTimes) )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg m =
-    case m of
-        Initialising flags ->
-            case msg of
-                Resize ->
-                    ( m, Task.perform (\_ -> GetDimensions) (Task.succeed ()) )
-
-                GetDimensions ->
-                    ( m, Dom.getElement "game-grid" |> Task.map (\dom -> { width = dom.element.width, height = dom.element.height }) |> Task.attempt GotDimensions )
-
-                GotDimensions (Ok dimensions) ->
-                    ( initialModel flags (Just dimensions), Cmd.none )
-
-                GotDimensions (Err _) ->
-                    ( m, Cmd.none )
-
-                _ ->
-                    ( m, Cmd.none )
-
-        Initialised model ->
-            let
-                handleClick =
-                    \gameState c ->
-                        let
-                            updated =
-                                if gameState.ctrl then
-                                    flagCell gameState c
-
-                                else
-                                    revealCell gameState c
-
-                            won =
-                                (updated.state == Playing)
-                                    && (updated.numberOfBombs == 0)
-                                    && noHiddenCells updated.grid
-                        in
-                        if won == True then
-                            let
-                                ( refreshed, cmd ) =
-                                    refreshFastestTimes updated
-                            in
-                            ( { refreshed | state = Won }, cmd )
+update msg model =
+    let
+        handleClick =
+            \m c ->
+                let
+                    updatedModel =
+                        if m.ctrl then
+                            flagCell m c
 
                         else
-                            ( updated, Cmd.none )
-            in
-            if msg == Resize then
-                ( Initialising (flagsFromModel model)
-                , Task.perform (\_ -> GetDimensions) (Task.succeed ())
-                )
+                            revealCell m c
 
-            else
-                (case msg of
-                    ShowHighScores show ->
-                        ( { model | highScores = show }, Cmd.none )
-
-                    ShowInstructions show ->
-                        ( { model | instructions = show }, Ports.instructions show )
-
-                    Positions pos ->
-                        let
-                            grid =
-                                addBombsToGrid pos model.grid
-
-                            cellClicked =
-                                Maybe.andThen (\coord -> getCell coord grid) model.cellClicked
-
-                            updated =
-                                { model | cellClicked = Nothing, grid = grid }
-                        in
-                        case cellClicked of
+                    won =
+                        case updatedModel.game of
                             Nothing ->
-                                ( updated, Cmd.none )
+                                False
 
-                            Just c ->
-                                handleClick updated c
+                            Just game ->
+                                (updatedModel.state == Playing)
+                                    && (game.numberOfBombs == 0)
+                                    && noHiddenCells game.grid
+                in
+                if won == True then
+                    let
+                        ( refreshed, cmd ) =
+                            refreshFastestTimes updatedModel
+                    in
+                    ( { refreshed | state = Won }, cmd )
 
-                    StartGame ->
-                        startGame model Nothing
+                else
+                    ( updatedModel, Cmd.none )
+    in
+    case msg of
+        Resize ->
+            ( model, Task.perform (\_ -> GetDimensions) (Task.succeed ()) )
 
-                    Tick t ->
-                        ( { model | duration = model.duration + t }, Cmd.none )
+        GetDimensions ->
+            ( model, Dom.getElement "game-grid" |> Task.map (\dom -> { width = dom.element.width, height = dom.element.height }) |> Task.attempt GotDimensions )
 
-                    ClickedCell cell ->
-                        case model.state of
-                            Playing ->
-                                handleClick model cell
+        GotDimensions (Ok dimensions) ->
+            ( initialModel model.flags (Just dimensions), Cmd.none )
 
-                            _ ->
-                                startGame model (Just ( cell.x, cell.y ))
+        GotDimensions (Err _) ->
+            ( model, Cmd.none )
 
-                    KeyDown _ ->
-                        ( { model | ctrl = True }, Cmd.none )
+        ShowHighScores show ->
+            ( { model | highScores = show }, Cmd.none )
 
-                    KeyUp _ ->
-                        ( { model | ctrl = False }, Cmd.none )
+        ShowInstructions show ->
+            let
+                flags =
+                    model.flags
 
-                    ToggleLevel ->
-                        let
-                            level =
-                                case model.level of
-                                    Easy ->
-                                        Normal
+                updatedFlags =
+                    { flags | instructions = show }
+            in
+            ( { model | flags = updatedFlags }, Ports.instructions show )
 
-                                    Normal ->
-                                        Hard
+        Positions pos ->
+            case model.game of
+                Nothing ->
+                    ( model, Cmd.none )
 
-                                    Hard ->
-                                        Hardcore
+                Just game ->
+                    let
+                        grid =
+                            addBombsToGrid pos game.grid
 
-                                    Hardcore ->
-                                        Easy
-                        in
-                        startGame { model | level = level } Nothing
+                        cellClicked =
+                            Maybe.andThen (\coord -> getCell coord grid) model.cellClicked
 
-                    _ ->
-                        ( model, Cmd.none )
-                )
-                    |> (\( gs, cmds ) -> ( Initialised gs, cmds ))
+                        updatedGame =
+                            { game | grid = grid }
+
+                        updated =
+                            { model | cellClicked = Nothing, game = Just updatedGame }
+                    in
+                    case cellClicked of
+                        Nothing ->
+                            ( updated, Cmd.none )
+
+                        Just c ->
+                            handleClick updated c
+
+        StartGame ->
+            startGame model Nothing
+
+        Tick t ->
+            ( { model | duration = model.duration + t }, Cmd.none )
+
+        ClickedCell cell ->
+            case model.state of
+                Playing ->
+                    handleClick model cell
+
+                _ ->
+                    startGame model (Just ( cell.x, cell.y ))
+
+        KeyDown _ ->
+            ( { model | ctrl = True }, Cmd.none )
+
+        KeyUp _ ->
+            ( { model | ctrl = False }, Cmd.none )
+
+        ToggleLevel ->
+            let
+                level =
+                    case model.flags.level of
+                        Easy ->
+                            Normal
+
+                        Normal ->
+                            Hard
+
+                        Hard ->
+                            Hardcore
+
+                        Hardcore ->
+                            Easy
+
+                flags =
+                    model.flags
+
+                updatedFlags =
+                    { flags | level = level }
+            in
+            startGame { model | flags = updatedFlags } Nothing
