@@ -48,6 +48,8 @@ drawCell config grid y x =
             div
                 [ class cls
                 , onClick (ClickedCell cell)
+                , onMouseDown (StartPress cell)
+                , onMouseUp EndPress
                 , style "height" (String.fromFloat config.cellSize ++ "px")
                 , style "width" (String.fromFloat config.cellSize ++ "px")
                 ]
@@ -164,7 +166,7 @@ instructionsModal user =
         [ div [ class "modal-content" ]
             [ div []
                 [ p [] [ text <| "Hello @" ++ user ]
-                , p [] [ text "Click to reveal a square, Ctrl or Cmd click to flag a square" ]
+                , p [] [ text "Click to reveal a square, long-press or Ctrl|Cmd click to flag a square" ]
                 ]
             , Button.button "Got It" (ShowInstructions False)
             ]
