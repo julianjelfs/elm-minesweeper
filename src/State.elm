@@ -261,6 +261,9 @@ update msg model =
             , Task.perform (always LongPressed) (Task.succeed () |> Task.andThen (\_ -> Process.sleep model.threshold))
             )
 
+        MouseMove ->
+            ( { model | pressed = Nothing }, Cmd.none )
+
         EndPress ->
             case model.pressed of
                 Nothing ->
