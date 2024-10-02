@@ -262,7 +262,16 @@ update msg model =
             )
 
         EndPress ->
-            ( { model | pressed = Nothing }, Cmd.none )
+            case model.pressed of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just cell ->
+                    let
+                        ( updated, cmd ) =
+                            handleClick model cell
+                    in
+                    ( { updated | pressed = Nothing }, cmd )
 
         LongPressed ->
             case model.pressed of
@@ -274,7 +283,7 @@ update msg model =
                         ( updated, cmd ) =
                             handleClick { model | ctrl = True } cell
                     in
-                    ( { updated | ctrl = False }, cmd )
+                    ( { updated | ctrl = False, pressed = Nothing }, cmd )
 
         Resize ->
             ( model, Task.perform (\_ -> GetDimensions) (Task.succeed ()) )

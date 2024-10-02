@@ -32,8 +32,8 @@ onTouchEnd msg =
     Html.Events.on "touchend" (JD.succeed msg)
 
 
-drawCell : Config -> Dict.Dict Coord Cell -> Int -> Int -> Html Msg
-drawCell config grid y x =
+drawCell : Bool -> Config -> Dict.Dict Coord Cell -> Int -> Int -> Html Msg
+drawCell touch config grid y x =
     case Dict.get ( x, y ) grid of
         Just cell ->
             let
@@ -56,26 +56,33 @@ drawCell config grid y x =
                                 , bombsToString cell.nearbyBombs
                                 )
             in
-            div
-                [ class cls
-                , onClick (ClickedCell cell)
-                , onTouchStart (StartPress cell)
-                , onTouchEnd EndPress
-                , onMouseDown (StartPress cell)
-                , onMouseUp EndPress
-                , style "height" (String.fromFloat config.cellSize ++ "px")
-                , style "width" (String.fromFloat config.cellSize ++ "px")
-                ]
-                [ text txt ]
+            if touch then
+                div
+                    [ class cls
+                    , onTouchStart (StartPress cell)
+                    , onTouchEnd EndPress
+                    , style "height" (String.fromFloat config.cellSize ++ "px")
+                    , style "width" (String.fromFloat config.cellSize ++ "px")
+                    ]
+                    [ text txt ]
+
+            else
+                div
+                    [ class cls
+                    , onClick (ClickedCell cell)
+                    , style "height" (String.fromFloat config.cellSize ++ "px")
+                    , style "width" (String.fromFloat config.cellSize ++ "px")
+                    ]
+                    [ text txt ]
 
         Nothing ->
             div [] []
 
 
-drawRow : Config -> Dict.Dict Coord Cell -> Int -> Html Msg
-drawRow config grid y =
+drawRow : Bool -> Config -> Dict.Dict Coord Cell -> Int -> Html Msg
+drawRow touch config grid y =
     div [ class "row" ]
-        (List.range 0 (config.dimensions.columns - 1) |> List.map (drawCell config grid y))
+        (List.range 0 (config.dimensions.columns - 1) |> List.map (drawCell touch config grid y))
 
 
 levelName : Level -> String
@@ -246,7 +253,7 @@ root model =
                         []
 
                     Just gameState ->
-                        List.range 0 (gameState.config.dimensions.rows - 1) |> List.map (drawRow gameState.config gameState.grid)
+                        List.range 0 (gameState.config.dimensions.rows - 1) |> List.map (drawRow model.flags.touch gameState.config gameState.grid)
                 )
             , if instr then
                 instructionsModal user

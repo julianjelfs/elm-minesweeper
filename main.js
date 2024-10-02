@@ -4,6 +4,10 @@ import { initialise } from "@open-ic/openchat-embed";
 import { Elm } from "./src/Main.elm";
 
 window.onload = async () => {
+  const touch =
+    "ontouchstart" in window ||
+    navigator.maxTouchPoints > 0 ||
+    navigator.msMaxTouchPoints > 0;
   let level = Number(localStorage.getItem("openchat_minesweeper_level") ?? 1);
   let instructions =
     localStorage.getItem("openchat_minesweeper_instructions") !== "false";
@@ -24,6 +28,7 @@ window.onload = async () => {
     level,
     instructions,
     fastestTimes,
+    touch,
   };
 
   console.log("Flags: ", flags);
