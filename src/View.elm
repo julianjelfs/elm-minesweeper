@@ -5,6 +5,7 @@ import Dict
 import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
+import Json.Decode as JD
 import Types exposing (..)
 
 
@@ -19,6 +20,16 @@ bombsToString bombs =
 
         Just n ->
             String.fromInt n
+
+
+onTouchStart : msg -> Html.Attribute msg
+onTouchStart msg =
+    Html.Events.on "touchstart" (JD.succeed msg)
+
+
+onTouchEnd : msg -> Html.Attribute msg
+onTouchEnd msg =
+    Html.Events.on "touchend" (JD.succeed msg)
 
 
 drawCell : Config -> Dict.Dict Coord Cell -> Int -> Int -> Html Msg
@@ -48,6 +59,8 @@ drawCell config grid y x =
             div
                 [ class cls
                 , onClick (ClickedCell cell)
+                , onTouchStart (StartPress cell)
+                , onTouchEnd EndPress
                 , onMouseDown (StartPress cell)
                 , onMouseUp EndPress
                 , style "height" (String.fromFloat config.cellSize ++ "px")
