@@ -1,5 +1,6 @@
 module View exposing (root)
 
+import Browser.Events exposing (onMouseMove)
 import Button
 import Dict
 import Html exposing (..)
@@ -65,6 +66,7 @@ drawCell touch config grid y x =
                     [ class cls
                     , onTouchStart (StartPress cell)
                     , onTouchEnd EndPress
+                    , Html.Events.on "touchmove" (JD.succeed MouseMove)
                     , style "height" (String.fromFloat config.cellSize ++ "px")
                     , style "width" (String.fromFloat config.cellSize ++ "px")
                     , style "min-width" "50px"

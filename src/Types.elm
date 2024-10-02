@@ -174,6 +174,7 @@ type Msg
     | Resize
     | ShowHighScores Bool
     | StartPress Cell
+    | MouseMove
     | EndPress
     | LongPressed
 
