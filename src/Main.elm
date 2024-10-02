@@ -59,19 +59,14 @@ init args =
                 Ok decoded ->
                     decoded
     in
-    ( Initialising flags, Task.perform (\_ -> GetDimensions) (Task.succeed ()) )
+    ( initialModel flags Nothing, Task.perform (\_ -> GetDimensions) (Task.succeed ()) )
 
 
 timerSub : Model -> Sub Msg
 timerSub model =
-    case model of
-        Initialised m ->
-            case m.state of
-                Playing ->
-                    Events.onAnimationFrameDelta Tick
-
-                _ ->
-                    Sub.none
+    case model.state of
+        Playing ->
+            Events.onAnimationFrameDelta Tick
 
         _ ->
             Sub.none

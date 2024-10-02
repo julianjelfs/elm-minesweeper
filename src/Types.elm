@@ -9,7 +9,7 @@ module Types exposing
     , GameState
     , Grid
     , Level(..)
-    , Model(..)
+    , Model
     , Msg(..)
     , State(..)
     , addBombToGrid
@@ -28,7 +28,6 @@ module Types exposing
     , nullFastestTimes
     , padLeftNum
     , populateNearbyBombs
-    , propFromModel
     , translate
     )
 
@@ -130,25 +129,22 @@ levelToInt level =
             3
 
 
-type Model
-    = Initialising Flags
-    | Initialised GameState
+type alias Model =
+    { flags : Flags
+    , duration : Float
+    , state : State
+    , ctrl : Bool
+    , cellClicked : Maybe Coord
+    , highScores : Bool
+    , game : Maybe GameState
+    }
 
 
 type alias GameState =
     { grid : Grid
-    , duration : Float
-    , state : State
-    , ctrl : Bool
-    , numberOfBombs : Int
-    , cellClicked : Maybe Coord
-    , username : String
-    , config : Config
-    , level : Level
     , dimensions : Dimensions
-    , instructions : Bool
-    , highScores : Bool
-    , fastestTimes : FastestTimes
+    , config : Config
+    , numberOfBombs : Int
     }
 
 
@@ -203,42 +199,28 @@ createGrid config =
         |> List.foldl (\t d -> Dict.insert t (createCell t) d) Dict.empty
 
 
-propFromModel : Model -> (GameState -> a) -> a -> a
-propFromModel model fn def =
-    case model of
-        Initialising _ ->
-            def
-
-        Initialised gs ->
-            fn gs
-
-
 initialModel : Flags -> Maybe Dimensions -> Model
 initialModel flags dimensions =
-    case dimensions of
-        Nothing ->
-            Initialising flags
-
-        Just dims ->
+    let
+        createGameState dims =
             let
                 config =
                     getConfig dims flags.level
             in
-            Initialised
-                { grid = createGrid config
-                , duration = 0
-                , state = NewGame
-                , ctrl = False
-                , numberOfBombs = config.initialBombs
-                , cellClicked = Nothing
-                , username = flags.username
-                , config = config
-                , level = flags.level
-                , dimensions = dims
-                , instructions = flags.instructions
-                , highScores = False
-                , fastestTimes = flags.fastestTimes
-                }
+            { grid = createGrid config
+            , dimensions = dims
+            , config = config
+            , numberOfBombs = config.initialBombs
+            }
+    in
+    { flags = flags
+    , duration = 0
+    , state = NewGame
+    , ctrl = False
+    , cellClicked = Nothing
+    , highScores = False
+    , game = Maybe.map createGameState dimensions
+    }
 
 
 inc : Int -> Int
