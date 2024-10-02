@@ -12,7 +12,12 @@ window.onload = async () => {
   let instructions =
     localStorage.getItem("openchat_minesweeper_instructions") !== "false";
   let fastestStr = localStorage.getItem("openchat_minesweeper_fastest");
-  let fastestTimes = {};
+  let fastestTimes = {
+    easy: undefined,
+    normal: undefined,
+    hard: undefined,
+    hardcore: undefined,
+  };
   if (fastestStr) {
     fastestTimes = JSON.parse(fastestStr);
   }
