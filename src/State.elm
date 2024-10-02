@@ -6,6 +6,7 @@ import Dict
 import Html.Attributes exposing (start)
 import Json.Encode as JE
 import Ports
+import Process
 import RandomPositions
 import Set
 import String exposing (replace)
@@ -255,6 +256,26 @@ update msg model =
                     ( updatedModel, Cmd.none )
     in
     case msg of
+        StartPress cell ->
+            ( { model | pressed = Just cell }
+            , Task.perform (always LongPressed) (Task.succeed () |> Task.andThen (\_ -> Process.sleep model.threshold))
+            )
+
+        EndPress ->
+            ( { model | pressed = Nothing }, Cmd.none )
+
+        LongPressed ->
+            case model.pressed of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just cell ->
+                    let
+                        ( updated, cmd ) =
+                            handleClick { model | ctrl = True } cell
+                    in
+                    ( { updated | ctrl = False }, cmd )
+
         Resize ->
             ( model, Task.perform (\_ -> GetDimensions) (Task.succeed ()) )
 

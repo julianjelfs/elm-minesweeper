@@ -36,6 +36,7 @@ import Debug exposing (..)
 import Dict
 import Set
 import String exposing (padLeft)
+import Time exposing (Posix)
 
 
 type alias Config =
@@ -137,6 +138,8 @@ type alias Model =
     , cellClicked : Maybe Coord
     , highScores : Bool
     , game : Maybe GameState
+    , pressed : Maybe Cell
+    , threshold : Float
     }
 
 
@@ -169,6 +172,9 @@ type Msg
     | ShowInstructions Bool
     | Resize
     | ShowHighScores Bool
+    | StartPress Cell
+    | EndPress
+    | LongPressed
 
 
 padLeftNum : Int -> String
@@ -220,6 +226,8 @@ initialModel flags dimensions =
     , cellClicked = Nothing
     , highScores = False
     , game = Maybe.map createGameState dimensions
+    , pressed = Nothing
+    , threshold = 500
     }
 
 
