@@ -258,7 +258,7 @@ update msg model =
     case msg of
         StartPress cell ->
             ( { model | pressed = Just cell }
-            , Task.perform (always LongPressed) (Task.succeed () |> Task.andThen (\_ -> Process.sleep model.threshold))
+            , Task.perform (always (LongPressed cell)) (Task.succeed () |> Task.andThen (\_ -> Process.sleep model.threshold))
             )
 
         MouseMove ->
@@ -277,17 +277,21 @@ update msg model =
                         _ ->
                             startGame { model | pressed = Nothing } (Just ( cell.x, cell.y ))
 
-        LongPressed ->
+        LongPressed cell ->
             case model.pressed of
                 Nothing ->
                     ( model, Cmd.none )
 
-                Just cell ->
-                    let
-                        ( updated, cmd ) =
-                            handleClick { model | ctrl = True } cell
-                    in
-                    ( { updated | ctrl = False, pressed = Nothing }, cmd )
+                Just pressedCell ->
+                    if pressedCell.x == cell.x && pressedCell.y == cell.y then
+                        let
+                            ( updated, cmd ) =
+                                handleClick { model | ctrl = True } pressedCell
+                        in
+                        ( { updated | ctrl = False, pressed = Nothing }, cmd )
+
+                    else
+                        ( model, Cmd.none )
 
         Resize ->
             ( model, Task.perform (\_ -> GetDimensions) (Task.succeed ()) )

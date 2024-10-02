@@ -176,7 +176,7 @@ type Msg
     | StartPress Cell
     | MouseMove
     | EndPress
-    | LongPressed
+    | LongPressed Cell
 
 
 padLeftNum : Int -> String
