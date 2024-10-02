@@ -180,13 +180,17 @@ youLose =
         ]
 
 
-instructionsModal : String -> Html Msg
-instructionsModal user =
+instructionsModal : Bool -> String -> Html Msg
+instructionsModal touch user =
     div [ class "modal" ]
         [ div [ class "modal-content" ]
             [ div []
                 [ p [] [ text <| "Hello @" ++ user ]
-                , p [] [ text "Click to reveal a square, long-press or Ctrl|Cmd click to flag a square" ]
+                , if touch then
+                    p [] [ text "Tap to reveal a square, long-press to (un)flag a square" ]
+
+                  else
+                    p [] [ text "Click to reveal a square, Ctrl or Cmd click to (un)flag a square" ]
                 ]
             , Button.button "Got It" (ShowInstructions False)
             ]
@@ -256,7 +260,7 @@ root model =
                         List.range 0 (gameState.config.dimensions.rows - 1) |> List.map (drawRow model.flags.touch gameState.config gameState.grid)
                 )
             , if instr then
-                instructionsModal user
+                instructionsModal model.flags.touch user
 
               else
                 text ""
