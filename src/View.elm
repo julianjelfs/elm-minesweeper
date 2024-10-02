@@ -33,8 +33,17 @@ onTouchEnd msg =
     Html.Events.on "touchend" (JD.succeed msg)
 
 
-drawCell : Bool -> Config -> Dict.Dict Coord Cell -> Int -> Int -> Html Msg
-drawCell touch config grid y x =
+appendIf : Bool -> List a -> List a -> List a
+appendIf pred more list =
+    if pred then
+        List.append list more
+
+    else
+        list
+
+
+drawCell : Level -> Bool -> Config -> Dict.Dict Coord Cell -> Int -> Int -> Html Msg
+drawCell level touch config grid y x =
     case Dict.get ( x, y ) grid of
         Just cell ->
             let
@@ -59,16 +68,19 @@ drawCell touch config grid y x =
             in
             if touch then
                 div
-                    [ class cls
-                    , classList [ ( "touch", touch ) ]
-                    , onTouchStart (StartPress cell)
-                    , onTouchEnd EndPress
-                    , Html.Events.on "touchmove" (JD.succeed MouseMove)
-                    , style "height" (String.fromFloat config.cellSize ++ "px")
-                    , style "width" (String.fromFloat config.cellSize ++ "px")
-                    , style "min-width" "40px"
-                    , style "min-height" "40px"
-                    ]
+                    ([ class cls
+                     , classList [ ( "touch", touch ) ]
+                     , onTouchStart (StartPress cell)
+                     , onTouchEnd EndPress
+                     , Html.Events.on "touchmove" (JD.succeed MouseMove)
+                     , style "height" (String.fromFloat config.cellSize ++ "px")
+                     , style "width" (String.fromFloat config.cellSize ++ "px")
+                     ]
+                        |> appendIf (level /= Easy)
+                            [ style "min-width" "40px"
+                            , style "min-height" "40px"
+                            ]
+                    )
                     [ text txt ]
 
             else
@@ -85,10 +97,10 @@ drawCell touch config grid y x =
             div [] []
 
 
-drawRow : Bool -> Config -> Dict.Dict Coord Cell -> Int -> Html Msg
-drawRow touch config grid y =
+drawRow : Level -> Bool -> Config -> Dict.Dict Coord Cell -> Int -> Html Msg
+drawRow level touch config grid y =
     div [ class "row" ]
-        (List.range 0 (config.dimensions.columns - 1) |> List.map (drawCell touch config grid y))
+        (List.range 0 (config.dimensions.columns - 1) |> List.map (drawCell level touch config grid y))
 
 
 levelName : Level -> String
@@ -263,7 +275,7 @@ root model =
                         []
 
                     Just gameState ->
-                        List.range 0 (gameState.config.dimensions.rows - 1) |> List.map (drawRow model.flags.touch gameState.config gameState.grid)
+                        List.range 0 (gameState.config.dimensions.rows - 1) |> List.map (drawRow model.flags.level model.flags.touch gameState.config gameState.grid)
                 )
             , if instr then
                 instructionsModal model.flags.touch user
