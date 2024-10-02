@@ -225,22 +225,8 @@ div[data-elm-hot],
   font-size: 9px;
 }
 
-@media (max-width: 768px) {
-  .easy .cell {
-    font-size: 16px;
-  }
-
-  .normal .cell {
-    font-size: 12px;
-  }
-
-  .hard .cell {
-    font-size: 9px;
-  }
-
-  .hardcore .cell {
-    font-size: 6px;
-  }
+.cell.touch {
+  font-size: 16px;
 }
 
 .cell.flagged {

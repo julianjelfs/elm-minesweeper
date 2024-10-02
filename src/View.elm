@@ -64,19 +64,21 @@ drawCell touch config grid y x =
             if touch then
                 div
                     [ class cls
+                    , classList [ ( "touch", touch ) ]
                     , onTouchStart (StartPress cell)
                     , onTouchEnd EndPress
                     , Html.Events.on "touchmove" (JD.succeed MouseMove)
                     , style "height" (String.fromFloat config.cellSize ++ "px")
                     , style "width" (String.fromFloat config.cellSize ++ "px")
-                    , style "min-width" "50px"
-                    , style "min-height" "50px"
+                    , style "min-width" "40px"
+                    , style "min-height" "40px"
                     ]
                     [ text txt ]
 
             else
                 div
                     [ class cls
+                    , classList [ ( "touch", touch ) ]
                     , onClick (ClickedCell cell)
                     , style "height" (String.fromFloat config.cellSize ++ "px")
                     , style "width" (String.fromFloat config.cellSize ++ "px")

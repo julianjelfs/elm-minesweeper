@@ -270,11 +270,12 @@ update msg model =
                     ( model, Cmd.none )
 
                 Just cell ->
-                    let
-                        ( updated, cmd ) =
-                            handleClick model cell
-                    in
-                    ( { updated | pressed = Nothing }, cmd )
+                    case model.state of
+                        Playing ->
+                            handleClick { model | pressed = Nothing } cell
+
+                        _ ->
+                            startGame { model | pressed = Nothing } (Just ( cell.x, cell.y ))
 
         LongPressed ->
             case model.pressed of
