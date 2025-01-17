@@ -36,7 +36,7 @@ window.onload = async () => {
     touch,
   };
 
-  console.log("Flags:  ", flags);
+  console.log("Flagz: ", flags);
   const app = Elm.Main.init({
     node: document.getElementById("app"),
     flags,
