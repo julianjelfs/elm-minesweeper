@@ -1,0 +1,12 @@
+name: Notify OpenChat
+description: "Notify OpenChat when I receive a PR to this repo"
+inputs:
+  oc_bot_url:
+    description: "The url of the OpenChat bot to call"
+    required: true
+  api_key:
+    description: "The API key for authentication"
+    required: true
+runs:
+  using: "node12"
+  main: "src/index.js"
