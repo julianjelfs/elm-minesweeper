@@ -1,0 +1,17 @@
+name: Notify External System on PR
+
+on:
+  pull_request:
+    types: [opened, reopened]
+    branches:
+      - master
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify External
+        uses: ./.github/actions/notify_external
+        with:
+          oc_bot_url: ${{ secrets.OC_BOT_URL }}
+          api_key: ${{ secrets.OC_API_KEY }}
