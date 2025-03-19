@@ -1,4 +1,4 @@
-name: Notify External System on PR
+name: PR Created
 
 on:
   pull_request:
@@ -7,23 +7,28 @@ on:
       - master
 
 jobs:
-  notify:
+  post-pr-data:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: "22" # Specify the Node.js version you want to use
+      - name: Post PR data
+        env:
+          OC_BOT_URL: ${{ secrets.OC_BOT_URL }}
+          OC_API_KEY: ${{ secrets.OC_API_KEY }}
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
 
-      - name: Install dependencies
-        run: npm install
-        working-directory: .github/actions/notify_external
+          DATA=$(jq -n \
+            --arg title "$PR_TITLE" \
+            --arg url "$PR_URL" \
+            --arg author "$PR_AUTHOR" \
+            '{title: $title, url: $url, author: $author}')
 
-      - name: Notify External
-        uses: ./.github/actions/notify_external
-        with:
-          oc_bot_url: ${{ secrets.OC_BOT_URL }}
-          api_key: ${{ secrets.OC_API_KEY }}
+          curl -X POST "$OC_BOT_URL" \
+            -H "Content-Type: application/json" \
+            -H "x-api-key: $OC_API_KEY" \
+            -d "$DATA"
